@@ -1,0 +1,110 @@
+# ==============================================================================
+# YAWC Configuration
+# ==============================================================================
+# Place this file in $XDG_CONFIG_HOME/yawc/config.toml (usually ~/.config/yawc/config.toml)
+
+# ------------------------------------------------------------------------------
+# 1. Autostart
+# ------------------------------------------------------------------------------
+autostart = [
+    # Required for graphical apps asking for passwords (e.g. Synaptic, GParted)
+    "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1",
+    
+    # Standard desktop components (uncomment if installed)
+    # "wbg ~/Pictures/wallpapers/default.jpg",  # Wallpaper setter
+    # "waybar",                                 # Status bar
+    # "mako",                                   # Notification daemon
+
+    # Updates environment variables for screen sharing support
+    "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
+]
+
+# ------------------------------------------------------------------------------
+# 2. Environment Variables
+# ------------------------------------------------------------------------------
+[environment]
+XDG_CURRENT_DESKTOP = "YAWC"
+XDG_SESSION_TYPE = "wayland"
+
+# Toolkit overrides to force Wayland mode
+SDL_VIDEODRIVER = "wayland"
+QT_QPA_PLATFORM = "wayland"
+GDK_BACKEND = "wayland"
+CLUTTER_BACKEND = "wayland"
+MOZ_ENABLE_WAYLAND = "1"
+
+# Fix for Java GUI applications (IntelliJ, Minecraft)
+_JAVA_AWT_WM_NONREPARENTING = "1"
+
+# ------------------------------------------------------------------------------
+# 3. Input: Pointer (Mouse/Touchpad)
+# ------------------------------------------------------------------------------
+[pointer]
+enabled = true
+
+# Motion
+accel_profile = "adaptive"  # "flat" for gaming, "adaptive" for desktop
+accel_speed = 0.0           # -1.0 to 1.0
+
+# Scrolling
+nat_scrolling = true        # True = Content follows finger (macOS style)
+scroll_method = "2fg"       # Two-finger scroll
+
+# Touchpad gestures
+tap_to_click = true
+tap_and_drag = true
+disable_w_typing = true     # Prevent accidental clicks while typing
+
+tab_button_map = "lrm"
+
+# ------------------------------------------------------------------------------
+# 4. Input: Keyboard
+# ------------------------------------------------------------------------------
+[keyboard]
+enabled = true
+xkb_layout = "us"
+# xkb_variant = "altgr-intl"
+# xkb_options = "caps:escape"  # Remap Caps Lock to Escape
+
+repeat_rate = 25
+repeat_delay = 600
+
+# ------------------------------------------------------------------------------
+# 5. Keybindings
+# ------------------------------------------------------------------------------
+# Modifiers: Shift, Control, Alt, Super (Win).
+# Alt-Esc is the default bind to kill the compositor
+#
+# Types of bindings:
+# 1. Shell commands: "alacritty", "firefox"
+# 2. Global Shortcuts: "description:id" (Contains ':'). 
+#    These are registered with the XDG Global Shortcuts Portal (e.g., for OBS).
+
+[keybinds]
+# --- Launchers ---
+"Super+Return" = "alacritty"
+"Super+d" = "wofi --show drun"
+"Super+b" = "firefox"
+
+# --- Utilities ---
+"Print" = "grim"
+"Shift+Print" = "slurp | grim -g -"
+
+# Apps like OBS will request these binds via the portal.
+# Format: "app_id:id"
+"Super+F5" = "com.obsproject.Studio:_toggle_recording"
+
+# ------------------------------------------------------------------------------
+# 6. Device Overrides
+# ------------------------------------------------------------------------------
+
+# Example: Gaming Mouse (Disable acceleration)
+# ["Logitech G Pro X Superlight"]
+# type = "pointer"
+# accel_profile = "flat"
+# accel_speed = 0.0
+
+# Example: External Keyboard (Different layout)
+# ["Keychron K2"]
+# type = "keyboard"
+# xkb_layout = "de"

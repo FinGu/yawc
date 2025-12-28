@@ -1,0 +1,15 @@
+#!/usr/bin/python3
+
+try:
+    print("-----------------------------")
+    with open("/tmp/yawc_global_shortcuts.log") as f:
+        for line in f:
+            parts = line.split(' ', 1)
+
+            print("full id of shortcut:", parts[0])
+            if len(parts) > 1:
+                print("description:", parts[1].strip('\n'))
+            print("-----------------------------")
+except FileNotFoundError:
+    print("No global shortcuts as of yet")
+    print("-----------------------------")

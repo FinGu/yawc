@@ -1,0 +1,2 @@
+#!/bin/sh
+yawc -w /usr/local/libexec/yawc/libdefault_wm.so 2> /tmp/yawc_default_wm.log
