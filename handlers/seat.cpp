@@ -55,9 +55,9 @@ void handle_seat_destroy(struct wl_listener *listener, void *data){
 	wl_list_remove(&server->on_request_set_selection.link);
 	wl_list_remove(&server->on_request_set_primary_selection.link);
 
-	//wlr_scene_node_destroy(&server->drag.icons->node);
 	wl_list_remove(&server->drag.events.request.link);
 	wl_list_remove(&server->drag.events.start.link);
+	wl_list_remove(&server->drag.events.destroy.link);
 
 	wl_list_remove(&server->seat_destroy.link);
 
@@ -137,14 +137,6 @@ void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
 
 	this->set_focus_surface(layer->surface);
 	this->focused_layer = layer;
-}
-
-void on_pointer_destroy(struct wl_listener *listener, void *data){
-    struct yawc_pointer *pointer = wl_container_of(listener, pointer, link);
-
-    wl_list_remove(&pointer->destroy.link);
-    wl_list_remove(&pointer->link);
-    delete pointer;
 }
 
 void yawc_server::handle_new_input(struct wl_listener* listener, void* data){

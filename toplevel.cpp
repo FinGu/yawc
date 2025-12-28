@@ -474,5 +474,6 @@ yawc_toplevel *create_toplevel_xdg(yawc_server *server, struct wlr_xdg_toplevel 
 
 yawc_toplevel::~yawc_toplevel(){
     wl_list_remove(&this->link);
+
     wlr_scene_node_destroy(&this->image_capture_scene->tree.node);
 }

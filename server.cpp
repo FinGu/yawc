@@ -97,6 +97,10 @@ yawc_server::~yawc_server()
         delete this->keybind_manager;
     }
 
+    if(this->shortcuts_manager) {
+        wl_list_remove(&this->new_shortcut.link);
+    }
+
     if(this->wm.handle){
         this->unload_wm();
     }
