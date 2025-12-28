@@ -4,20 +4,20 @@
 
 `yawc` is a **modular Wayland compositor** built on **wlroots** (0.20+). It was primarily designed for personal usage, with focus on building custom Window Managers without handling low-level Wayland boilerplate.
 
-## Key Features
+## Key features / quirks
 
-- **Modular Architecture**: Window management logic (stacking, tiling, etc.) is loaded as a plugin.
+- **Modular architecture**: Window management logic (stacking, tiling, etc.) is loaded as a plugin.
 - **wlroots-based**: Built on the latest `wlroots` (0.20+).
-- **Tearing Enabled**: Enabled by default for low latency.
-- **Global Shortcuts**: Handled via `xdg-desktop-portal-hyprland`.
+- **Tearing enabled**: Enabled by default for low latency.
+- **Global shortcuts**: Handled via `xdg-desktop-portal-hyprland`.
   - List active shortcuts: `yawc-shortcuts`
   - Reload configuration: `yawc-reload`
 - **HiDPI X11**: Uses `xwayland-satellite` to prevent blurry XWayland apps.
 - **Configuration**: Simple TOML configuration with hot-reload support.
-- **Input Handling**: Centralized input configuration with per-device overrides.
-- **Keybind Sequences**: Support for multi-key sequences (e.g., Emacs-style bindings).
+- **Input handling**: Centralized input configuration with per-device overrides.
+- **Keybind sequences**: Support for multi-key sequences (e.g., Emacs-style bindings).
 
-## Build Instructions
+## Build instructions
 
 `yawc` uses the Meson build system.
 
@@ -42,12 +42,12 @@ meson compile -C build
 sudo meson install -C build
 ```
 
-## Runtime Dependencies
+## Runtime dependencies
 
 **Required:**
 - `wlroots` (0.20+)
 
-**Optional but Recommended:**
+**Optional but recommended:**
 - `xdg-desktop-portal-hyprland` - For global shortcuts, screenshotting and screensharing support
 - `xwayland-satellite` - For XWayland support (prevents blurry X11 apps [old folder has the old implementation])
 - `wlr-randr` or `kanshi` - For output configuration
@@ -100,17 +100,19 @@ tap_to_click = true
 
 ## Tools
 
-**Reload Configuration**: The compositor listens for `SIGUSR1` to reload the configuration without restarting:
+```
+
+**Reload configuration**: The compositor listens for `SIGUSR1` to reload the configuration without restarting:
 ```bash
 yawc-reload  # or: kill -USR1 $(pidof yawc)
 ```
 
-**List Global Shortcuts**: View all registered global shortcuts:
+**List global shortcuts**: View all registered global shortcuts:
 ```bash
 yawc-shortcuts
 ```
 
-## Device-Specific Configuration
+## Device specific configuration
 
 Override settings for specific input devices by creating a section with the device name:
 
