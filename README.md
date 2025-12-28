@@ -128,6 +128,9 @@ xkb_layout = "de"
 
 ```
 
+## Images
+![Image](https://github.com/user-attachments/assets/94f3522e-b240-400a-95ad-545a1b2c02ad)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
