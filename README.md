@@ -137,3 +137,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Thanks
 To all the other wlroots projects out there, *specially* tinywl and sway.
+Nuklear for the window decoration, Hyprland for specific protocols and the desktop portal.
+If i forget any, please let me know.
