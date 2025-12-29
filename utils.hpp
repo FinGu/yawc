@@ -26,15 +26,9 @@ namespace utils {
 
     void focus_toplevel(struct yawc_toplevel* toplevel);
 
-    void unfocus_everything(); // should hardly be used
-
     bool toplevel_not_empty(struct yawc_toplevel* toplevel);
 
-    struct wlr_box get_geometry_of_toplevel(struct yawc_toplevel* toplevel);
-
     struct yawc_output* get_output_of_toplevel(struct yawc_toplevel* toplevel);
-
-    void update_geometry_of_toplevel(struct yawc_toplevel *toplevel, struct wlr_box *box);
 
     bool pointer_pressed(struct wlr_pointer_button_event *event);
 

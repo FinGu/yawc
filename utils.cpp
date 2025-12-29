@@ -154,22 +154,13 @@ bool utils::toplevel_not_empty(struct yawc_toplevel* toplevel)
             toplevel->xdg_toplevel->base != nullptr;
 }
 
-struct wlr_box
-utils::get_geometry_of_toplevel(struct yawc_toplevel *toplevel){
-    /*
-    struct wlr_box bounds;
-    wlr_surface_get_extents(toplevel->xdg_toplevel->base->surface, &bounds);
-    return bounds;*/
-    return toplevel->xdg_toplevel->base->geometry;
-}
-
 struct yawc_output*
 utils::get_output_of_toplevel(struct yawc_toplevel* toplevel)
 {
 	double closest_x, closest_y;
 	struct wlr_output *output = nullptr;
 
-    auto geometry = utils::get_geometry_of_toplevel(toplevel);
+    auto geometry = toplevel->xdg_toplevel->base->geometry;
 
     int global_x, global_y;
     wlr_scene_node_coords(&toplevel->scene_tree->node, &global_x, &global_y);
@@ -194,10 +185,6 @@ utils::get_output_of_toplevel(struct yawc_toplevel* toplevel)
     }
 
     return nullptr;
-}
-
-void utils::update_geometry_of_toplevel(struct yawc_toplevel *toplevel, struct wlr_box *box){
-    wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, box->width, box->height);
 }
 
 bool utils::pointer_pressed(struct wlr_pointer_button_event *event){

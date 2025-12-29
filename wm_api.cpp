@@ -235,9 +235,7 @@ WM_API void wm_set_toplevel_geometry(wm_toplevel *t, wm_box_t geo) {
 
     wlr_scene_node_set_position(&toplevel->scene_tree->node, geo.x, geo.y);
 
-    struct wlr_box box = {geo.x, geo.y, geo.width, geo.height};
-
-    utils::update_geometry_of_toplevel(toplevel, &box);
+    wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, geo.width, geo.height);
 }
 
 WM_API wm_box_t wm_restore_toplevel_geometry(wm_toplevel *t){
@@ -541,7 +539,7 @@ WM_API wm_box_t wm_get_toplevel_geometry(wm_toplevel *t) {
         return box;
     }
 
-    auto geometry = utils::get_geometry_of_toplevel(t->toplevel);
+    auto geometry = t->toplevel->xdg_toplevel->base->geometry;
 
     box.width = geometry.width;
     box.height = geometry.height;

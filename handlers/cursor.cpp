@@ -23,12 +23,12 @@ bool yawc_server::do_mouse_operation()
             new_x,
             new_y);
 
-        struct wlr_box geo_box = utils::get_geometry_of_toplevel(this->grabbed_toplevel);
+        struct wlr_box geo_box = this->grabbed_toplevel->xdg_toplevel->base->geometry;
         
-        geo_box.x = new_x;
-        geo_box.y = new_y;
+        //geo_box.x = new_x;
+        //geo_box.y = new_y;
 
-        utils::update_geometry_of_toplevel(this->grabbed_toplevel, &geo_box);
+        //wlr_xdg_toplevel_set_size(this->grabbed_toplevel->xdg_toplevel, geo_box.width, geo_box.height);
         
         return true;
     }
@@ -66,7 +66,7 @@ bool yawc_server::do_mouse_operation()
             }
         }
 
-        struct wlr_box geo_box = utils::get_geometry_of_toplevel(this->grabbed_toplevel);
+        struct wlr_box geo_box = this->grabbed_toplevel->xdg_toplevel->base->geometry;
 
         wlr_scene_node_set_position(&this->grabbed_toplevel->scene_tree->node,
             new_left - geo_box.x, new_top - geo_box.y);
@@ -80,7 +80,7 @@ bool yawc_server::do_mouse_operation()
         geo_box.x = new_left;
         geo_box.y = new_top;
 
-        utils::update_geometry_of_toplevel(this->grabbed_toplevel, &geo_box);
+        wlr_xdg_toplevel_set_size(this->grabbed_toplevel->xdg_toplevel, geo_box.width, geo_box.height);
 
         return true;
     }

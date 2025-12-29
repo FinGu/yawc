@@ -45,7 +45,7 @@ void handle_toplevel_foreign_minimize(struct wl_listener* listener, void* data){
 }
 
 void yawc_toplevel::send_geometry_update(){
-    struct wlr_box geo = utils::get_geometry_of_toplevel(this);
+    struct wlr_box geo = this->xdg_toplevel->base->geometry;
     wlr_scene_node_coords(&this->scene_tree->node, &geo.x, &geo.y);
 
     auto *last_geo = &this->last_geo;
@@ -345,8 +345,8 @@ struct yawc_toplevel_geometry yawc_toplevel::save_state(){
     int current_x, current_y;
     wlr_scene_node_coords(&this->scene_tree->node, &current_x, &current_y);
 
-    auto geometry = utils::get_geometry_of_toplevel(this);
-   
+    auto geometry = this->xdg_toplevel->base->geometry;     
+
     struct yawc_toplevel_geometry geo = {
         current_x, current_y, geometry.width, geometry.height
     };

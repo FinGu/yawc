@@ -13,6 +13,8 @@ void begin_move(yawc_toplevel *toplevel)
     server->grabbed_toplevel = toplevel;
     server->current_mouse_operation = MOVING;
 
+    //this needs to be revised, if i have a node that's not the root (the decoration) with a y of -30
+    //we will stick the cursor to the actual window and not the decoration 
     int win_ax = 0.0, win_ay = 0.0;
     if (toplevel->scene_tree) {
         wlr_scene_node_coords(&toplevel->scene_tree->node, &win_ax, &win_ay);
@@ -33,7 +35,7 @@ void begin_resize(yawc_toplevel *toplevel, uint32_t edges)
     server->current_mouse_operation = RESIZING;
     server->resize_edges = edges;
 
-    struct wlr_box geo_box = utils::get_geometry_of_toplevel(toplevel);
+    struct wlr_box geo_box = toplevel->xdg_toplevel->base->geometry;
 
     int win_ax = 0, win_ay = 0;
     if (toplevel->scene_tree) {
@@ -70,8 +72,7 @@ void yawc_toplevel::set_fullscreen(bool enable){
                                   chosen_output->wlr_output, &output_box);
 
         wlr_scene_node_set_position(&this->scene_tree->node, output_box.x, output_box.y);
-        
-        utils::update_geometry_of_toplevel(this, &output_box);
+        wlr_xdg_toplevel_set_size(this->xdg_toplevel, output_box.width, output_box.height);
 
         wlr_scene_node_reparent(&this->scene_tree->node, this->server->layers.fullscreen);
 
@@ -107,7 +108,7 @@ void yawc_toplevel::default_set_maximized(bool enable){
 
     if(enable){
         wlr_scene_node_set_position(&this->scene_tree->node, usable_box.x, usable_box.y);
-        utils::update_geometry_of_toplevel(this, &usable_box);
+        wlr_xdg_toplevel_set_size(this->xdg_toplevel, usable_box.width, usable_box.height);
 
         return;
     }
@@ -115,7 +116,7 @@ void yawc_toplevel::default_set_maximized(bool enable){
     int lx, ly;
     wlr_scene_node_coords(&this->scene_tree->node, &lx, &ly);
 
-    auto old_geo = utils::get_geometry_of_toplevel(this);
+    auto old_geo = this->xdg_toplevel->base->geometry;
 
     double ratio_x = (server->cursor->x - lx) / (double)old_geo.width;
 
