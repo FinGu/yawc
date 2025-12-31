@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://gitlab.freedesktop.org/FinGu/wlroots
+revision = HEAD
+depth = 1

@@ -12,10 +12,12 @@ srcs = files('main.cpp', 'server.cpp', 'toplevel.cpp', 'config.cpp', 'utils.cpp'
 subdir('protocols')
 subdir('default-wm')
 
+wlroots = subproject('wlroots')
+wlroots_dep = wlroots.get_variable('wlroots')
+
+subproject('xwayland-satellite')
+
 pixman = dependency('pixman-1')
-
-wlroots_dep = dependency('wlroots-0.20', required: true)
-
 wayland_server_dep = dependency('wayland-server', required: true)
 wayland_protocols_dep = dependency('wayland-protocols', required: true)
 x11_xkbcommon = dependency('xkbcommon', required: true)
