@@ -13,15 +13,10 @@ void begin_move(yawc_toplevel *toplevel)
     server->grabbed_toplevel = toplevel;
     server->current_mouse_operation = MOVING;
 
-    //this needs to be revised, if i have a node that's not the root (the decoration) with a y of -30
-    //we will stick the cursor to the actual window and not the decoration 
     int win_ax = 0.0, win_ay = 0.0;
     if (toplevel->scene_tree) {
         wlr_scene_node_coords(&toplevel->scene_tree->node, &win_ax, &win_ay);
-    } else {
-        win_ax = toplevel->scene_tree ? toplevel->scene_tree->node.x : 0;
-        win_ay = toplevel->scene_tree ? toplevel->scene_tree->node.y : 0;
-    }
+    } 
 
     server->grabbed_mov_x = server->cursor->x - win_ax;
     server->grabbed_mov_y = server->cursor->y - win_ay;

@@ -23,13 +23,6 @@ bool yawc_server::do_mouse_operation()
             new_x,
             new_y);
 
-        struct wlr_box geo_box = this->grabbed_toplevel->xdg_toplevel->base->geometry;
-        
-        //geo_box.x = new_x;
-        //geo_box.y = new_y;
-
-        //wlr_xdg_toplevel_set_size(this->grabbed_toplevel->xdg_toplevel, geo_box.width, geo_box.height);
-        
         return true;
     }
 

@@ -528,10 +528,10 @@ void handle_click_gestures(wm_pointer_event_t *event, struct window_data *data, 
             wm_box_t restore_geo = wm_restore_toplevel_geometry(toplevel);
 
             double ratio_x = (event->global_x - max_geo.x) / (double)max_geo.width;
-            double offset_y = event->global_y - max_geo.y;
+            //double offset_y = event->global_y - max_geo.y;
     
             restore_geo.x = event->global_x - (ratio_x * restore_geo.width);
-            restore_geo.y = event->global_y - offset_y;
+            restore_geo.y = event->global_y + (DECORATION_HEIGHT/2.);
 
             wm_set_toplevel_maximized(toplevel, false);
 
