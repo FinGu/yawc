@@ -464,6 +464,7 @@ void on_toplevel_map(wm_toplevel *toplevel){
     }
 }
 
+bool hover_cursor = false; 
 bool on_pointer_move(wm_pointer_event_t *event){
     destroy_window_list(); //we stop drawing the window list if it's there
 
@@ -480,8 +481,15 @@ bool on_pointer_move(wm_pointer_event_t *event){
 
     if(edges != WM_RESIZE_EDGE_INVALID){
         wm_set_cursor(wm_get_cursor_name_from_edges(edges));
+
+        hover_cursor = true; 
         return false;
     } 
+
+    if(hover_cursor){ //so we don't get an edge cursor after leaving the surface
+        wm_set_cursor("default");
+        hover_cursor = false;
+    }
 
     return true;
 }
