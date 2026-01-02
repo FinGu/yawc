@@ -211,6 +211,10 @@ WM_API void wm_set_cursor(const char* name){
     wlr_cursor_set_xcursor(wm_server->cursor, wm_server->cursor_mgr, name);
 }
 
+WM_API const char *wm_get_cursor_name_from_edges(uint32_t bits){
+    return wlr_xcursor_get_resize_name((enum wlr_edges)bits);
+}
+
 WM_API void wm_cancel_window_op() {
     wm_server->reset_cursor_mode();
 }
@@ -746,7 +750,7 @@ WM_API wm_buffer* wm_create_buffer(int width, int height, bool cpu_buffer) {
     static uint64_t mod = DRM_FORMAT_MOD_INVALID;
     static struct wlr_drm_format synth = {0};
 
-    synth.format = DRM_FORMAT_XRGB8888;
+    synth.format = DRM_FORMAT_ARGB8888;
     synth.len = 1;
     synth.modifiers = &mod;
 
@@ -802,7 +806,7 @@ WM_API void wm_release_buffer_data(wm_buffer *buffer){
 }
 
 //returns old buf
-WM_API wm_buffer *wm_update_overlay(const char *name, wm_buffer *buffer, int x, int y) {
+WM_API wm_buffer *wm_attach_overlay(const char *name, wm_buffer *buffer, int x, int y) {
     wm_buffer *old_buffer = nullptr;
     wlr_scene_buffer *scene_buffer;
     auto &overlays = wm_server->overlays;
@@ -832,7 +836,7 @@ WM_API wm_buffer *wm_update_overlay(const char *name, wm_buffer *buffer, int x, 
     return old_buffer;
 }
 
-WM_API wm_buffer *wm_remove_overlay(const char *name) {
+WM_API wm_buffer *wm_unattach_overlay(const char *name) {
     auto &overlays = wm_server->overlays;
 
   	auto it = overlays.find(name);
@@ -850,30 +854,60 @@ WM_API wm_buffer *wm_remove_overlay(const char *name) {
     return buf;
 }
 
+//returns the old buffer or nullptr
 //buf passed must be valid
-WM_API wm_buffer *wm_toplevel_attach_buffer(wm_toplevel *toplevel, wm_buffer *buffer, int x, int y) {
-    auto decoration = toplevel->toplevel->decoration;
+WM_API wm_buffer *wm_toplevel_attach_buffer(wm_toplevel *toplevel, const char *name, 
+        wm_buffer *buffer, int x, int y) {
+    wm_buffer *old_buffer = nullptr;
+    struct wlr_scene_buffer *cur_scene_buf;
 
-    if(decoration->ssd_scene_buffer){
-        wlr_scene_buffer_set_buffer_with_damage(decoration->ssd_scene_buffer, buffer->buffer, nullptr);
+    auto ytoplevel = toplevel->toplevel;
+
+    auto& buffers = ytoplevel->buffers;
+
+    auto it = buffers.find(name);
+
+    if(it != buffers.end()){
+        cur_scene_buf = it->second;
+
+        old_buffer = static_cast<wm_buffer*>(it->second->node.data);
+
+        wlr_scene_buffer_set_buffer_with_damage(cur_scene_buf, buffer->buffer, nullptr);
     } else{
-        decoration->ssd_scene_buffer = wlr_scene_buffer_create(toplevel->toplevel->scene_tree, buffer->buffer);
+        cur_scene_buf = wlr_scene_buffer_create(ytoplevel->scene_tree, buffer->buffer);
     }
 
-    if(!decoration->ssd_scene_buffer){
-        return nullptr;
-    }
+    wlr_scene_node_set_position(&cur_scene_buf->node, x, y);
 
-    wlr_scene_node_set_position(&decoration->ssd_scene_buffer->node, x, y);
+    wlr_scene_buffer_set_dest_size(cur_scene_buf, buffer->box.width, buffer->box.height);
 
-    wlr_scene_buffer_set_dest_size(decoration->ssd_scene_buffer, buffer->box.width, buffer->box.height);
-
-    decoration->ssd_scene_buffer->node.data = buffer;
+    cur_scene_buf->node.data = buffer;
 
     buffer->toplevel = toplevel->toplevel;
 
-    return buffer;
+    buffers[name] = cur_scene_buf;
+
+    return old_buffer;
 }
+
+WM_API wm_buffer *wm_toplevel_unattach_buffer(wm_toplevel *toplevel, const char *name) {
+    auto &buffers = toplevel->toplevel->buffers;
+
+  	auto it = buffers.find(name);
+
+    if(it == buffers.end()){
+        return nullptr;
+    }
+
+    wm_buffer *buf = static_cast<wm_buffer*>(it->second->node.data);
+
+    wlr_scene_node_destroy(&it->second->node);
+
+    buffers.erase(it);
+
+    return buf;
+}
+
 
 WM_API bool wm_render_fn_to_buffer(wm_buffer *buffer, wm_render_cb cb, void *user_data) {
     std::unique_ptr<wm_buffer, void(*)(wm_buffer*)> tmp_buf(nullptr, wm_destroy_buffer);

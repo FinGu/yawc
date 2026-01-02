@@ -5,6 +5,14 @@
 #include "../window_ops.hpp"
 #include "../wm_defs.hpp"
 
+void yawc_server::reset_cursor_mode(){
+    this->current_mouse_operation = NOTHING;
+    this->grabbed_toplevel = nullptr;
+    this->grabbed_mov_x = this->grabbed_mov_y = 0;
+    this->grabbed_res_x = this->grabbed_res_y = 0;
+    this->resize_edges = 0;
+}
+
 bool yawc_server::do_mouse_operation()
 {
     if (!utils::toplevel_not_empty(this->grabbed_toplevel)) {
@@ -23,12 +31,12 @@ bool yawc_server::do_mouse_operation()
             new_x,
             new_y);
 
+        wlr_cursor_set_xcursor(this->cursor, this->cursor_mgr, "grabbing");
+
         return true;
     }
 
     if (this->current_mouse_operation == RESIZING) {
-        wlr_log(WLR_DEBUG, "Resizing window");
-
         double border_x = this->cursor->x - this->grabbed_res_x;
         double border_y = this->cursor->y - this->grabbed_res_y;
         int new_left = this->grabbed_geo_box.x;

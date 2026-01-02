@@ -180,8 +180,11 @@ WM_API void wm_lower_toplevel(wm_toplevel *t);
 WM_API void wm_begin_move(wm_toplevel *t);
 //Full box ( considering decoration )
 WM_API void wm_begin_resize(wm_toplevel *t, uint32_t edge_bits);
+
 WM_API void wm_cancel_window_op();
 WM_API void wm_set_cursor(const char*);
+
+WM_API const char *wm_get_cursor_name_from_edges(uint32_t bits);
 
 WM_API void wm_set_toplevel_position(wm_toplevel *t, int x, int y);
 WM_API void wm_set_toplevel_geometry(wm_toplevel *t, wm_box_t geo);
@@ -196,8 +199,6 @@ WM_API float wm_get_output_render_scale(wm_output *output);
 WM_API void wm_hide_toplevel(wm_toplevel *t);
 WM_API void wm_unhide_toplevel(wm_toplevel *t);
 WM_API void wm_close_toplevel(wm_toplevel *t);
-
-WM_API wm_buffer *wm_render_rect(int width, int height, float color[4]);
 
 typedef enum {
     WM_GRIP_VISUAL_NONE,
@@ -261,12 +262,12 @@ typedef struct {
 wm_buffer_data data = wm_buffer_lock_data(buffer);
 
 for (int y = 0; y < geometry.height; ++y) { 
-    uint32_t *row = (uint32_t *)data.ptr + (size_t)y * (data.stride/4);
+    uint32_t *row = (uint32_t *)((char*)data.ptr + y * data.stride);
     for (int x = 0; x < geometry.width; ++x) {
         row[x] = 0xFF666666;
     }
 }
-wm_buffer_release_data(buffer);*/
+wm_release_buffer_data(buffer);*/
 WM_API wm_buffer_data wm_lock_buffer_data(wm_buffer *buffer);
 WM_API void wm_release_buffer_data(wm_buffer *buffer);
 
@@ -276,10 +277,13 @@ WM_API bool wm_render_fn_to_buffer(wm_buffer *buffer, wm_render_cb cb, void *use
 WM_API wm_box_t wm_get_buffer_geometry(wm_buffer *buffer);
 WM_API void wm_set_buffer_geometry(wm_buffer *, wm_box_t geo);
 
-WM_API wm_buffer *wm_update_overlay(const char *name, wm_buffer *buffer, int x, int y);
-WM_API wm_buffer *wm_remove_overlay(const char *name);
+WM_API wm_buffer *wm_attach_overlay(const char *name, wm_buffer *buffer, int x, int y);
+WM_API wm_buffer *wm_unattach_overlay(const char *name);
 
-WM_API wm_buffer *wm_toplevel_attach_buffer(wm_toplevel *toplevel, wm_buffer *buffer, int x, int y);
+WM_API wm_buffer *wm_toplevel_attach_buffer(wm_toplevel *toplevel, 
+        const char *name, wm_buffer *buffer, int x, int y);
+
+WM_API wm_buffer *wm_toplevel_unattach_buffer(wm_toplevel *toplevel, const char *name);
 
 WM_API void wm_toplevel_attach_state(wm_toplevel *toplevel, void *data);
 

@@ -6,14 +6,6 @@
 #include <linux/input-event-codes.h>
 #include <unistd.h>
 
-void yawc_server::reset_cursor_mode(){
-    this->current_mouse_operation = NOTHING;
-    this->grabbed_toplevel = nullptr;
-    this->grabbed_mov_x = this->grabbed_mov_y = 0;
-    this->grabbed_res_x = this->grabbed_res_y = 0;
-    this->resize_edges = 0;
-}
-
 bool handle_default_keybinds(struct yawc_server* server, xkb_keysym_t sym, uint32_t modifiers){
     if (modifiers & WLR_MODIFIER_ALT &&
 		sym >= XKB_KEY_XF86Switch_VT_1 &&

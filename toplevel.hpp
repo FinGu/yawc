@@ -8,8 +8,6 @@ struct yawc_toplevel_decoration{
     struct yawc_toplevel *toplevel;
     struct wlr_xdg_toplevel_decoration_v1 *xdg_decoration;
 
-    struct wlr_scene_buffer *ssd_scene_buffer;
-
     int width;
 
     struct wl_listener pointer_motion; 
@@ -104,6 +102,8 @@ struct yawc_toplevel {
         struct wl_listener request_fullscreen;
         struct wl_listener new_popup;
     } events;
+
+    std::map<std::string, wlr_scene_buffer*> buffers;
 
     ~yawc_toplevel();
 };

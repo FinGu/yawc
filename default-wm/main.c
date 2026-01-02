@@ -14,8 +14,9 @@
 #define DOUBLE_CLICK_THRESHOLD 0.5
 #define COORDS_THRESHOLD 5
 
+#define DECORATION_NAME "decoration"
 #define DECORATION_HEIGHT 30
-#define RESIZE_MARGIN 6
+#define RESIZE_MARGIN 10
 
 #define WINDOW_LIST_OVERLAY "alttab"
 #define WINDOW_LIST_ENTRY_HEIGHT 30
@@ -43,7 +44,9 @@ struct window_data *alloc_window_data(wm_buffer *buf){
 
 void free_window_data(struct window_data *data){
     wm_destroy_buffer(data->buffer);
+
     nk_wm_ctx_destroy(&data->ctx);
+
     free(data);
 }
 
@@ -130,7 +133,7 @@ void draw_window_element(struct window_list_data *wdata, wm_toplevel *cur){
         nk_style_pop_style_item(ctx);
         nk_style_pop_style_item(ctx);
     } else {
-        struct nk_style_item clear = nk_style_item_color(nk_rgba(0, 0, 0, 0));
+        struct nk_style_item clear = nk_style_item_color(nk_rgba(40, 40, 40, 255));
 
         nk_style_push_style_item(ctx, &ctx->style.button.normal, clear);
         nk_style_push_style_item(ctx, &ctx->style.button.hover, clear);
@@ -150,7 +153,13 @@ void draw_window_list(void *data){
 
     wm_box_t geo = wm_get_buffer_geometry(wdata->buffer);
 
+    nk_style_push_style_item(ctx, &ctx->style.window.fixed_background, nk_style_item_hide());
+    nk_style_push_color(ctx, &ctx->style.window.border_color, nk_rgba(0,0,0,0));
+    nk_style_push_float(ctx, &ctx->style.window.border, 0.0f);
     nk_style_push_vec2(ctx, &ctx->style.window.padding, nk_vec2(0,0));
+
+    nk_style_push_color(ctx, &ctx->style.window.group_border_color, nk_rgba(0,0,0,0));
+    nk_style_push_float(ctx, &ctx->style.window.group_border, 0.0f);
 
     if (wdata->toplevel_amount > 0) {
         wdata->current_index = (wdata->current_index + 1) % wdata->toplevel_amount;
@@ -164,7 +173,7 @@ void draw_window_list(void *data){
     }
 
     if (nk_begin(ctx, "windowlist", nk_rect(0, 0, geo.width, geo.height), 
-        NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BACKGROUND)) {
+        NK_WINDOW_NO_SCROLLBAR)) {
 
         nk_layout_row_dynamic(ctx, geo.height + 50, 1);
 
@@ -179,7 +188,13 @@ void draw_window_list(void *data){
 
     nk_end(ctx);
 
+    nk_style_pop_float(ctx);
+    nk_style_pop_color(ctx);
     nk_style_pop_vec2(ctx);
+    nk_style_pop_float(ctx);
+    nk_style_pop_color(ctx);
+    nk_style_pop_style_item(ctx);
+                            
     nk_wm_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_MEMORY, MAX_ELEMENT_MEMORY, geo.width, geo.height, ctx);
 }
 
@@ -188,7 +203,7 @@ void destroy_window_list(){
         return;
     }
 
-    wm_buffer *buf = wm_remove_overlay(WINDOW_LIST_OVERLAY);
+    wm_buffer *buf = wm_unattach_overlay(WINDOW_LIST_OVERLAY);
 
     if(buf){
         wm_destroy_buffer(buf);
@@ -236,7 +251,7 @@ wm_buffer *create_window_list(){
         window_list_data.buffer = buf;
     }
     
-    wm_buffer *old_buffer = wm_update_overlay(WINDOW_LIST_OVERLAY, window_list_data.buffer, 
+    wm_buffer *old_buffer = wm_attach_overlay(WINDOW_LIST_OVERLAY, window_list_data.buffer, 
             output_geometry.x + (output_geometry.width / 2 - width / 2), 
             output_geometry.y + (output_geometry.height / 2 - height / 2));
 
@@ -282,11 +297,7 @@ wm_buffer *create_decoration(wm_toplevel *toplevel, wm_box_t geometry) {
         return NULL;
     }
 
-    if(!wm_toplevel_attach_buffer(toplevel, buffer, geometry.x, geometry.y)){
-        wm_plugin_log("Failed to attach buffer to the scene");
-        wm_destroy_buffer(buffer);
-        return NULL;
-    }
+    wm_toplevel_attach_buffer(toplevel, DECORATION_NAME, buffer, geometry.x, geometry.y);
 
     wm_configure_toplevel_resize_grips(toplevel, 0, -DECORATION_HEIGHT, 
             geometry.width, old_height + DECORATION_HEIGHT, 
@@ -453,36 +464,6 @@ void on_toplevel_map(wm_toplevel *toplevel){
     }
 }
 
-const char *get_cursor_for_edge(uint32_t edges) {
-    if ((edges & WM_RESIZE_EDGE_TOP) && (edges & WM_RESIZE_EDGE_LEFT)) {
-        return "nw-resize";
-    }
-    if ((edges & WM_RESIZE_EDGE_TOP) && (edges & WM_RESIZE_EDGE_RIGHT)) {
-        return "ne-resize";
-    }
-    if ((edges & WM_RESIZE_EDGE_BOTTOM) && (edges & WM_RESIZE_EDGE_LEFT)) {
-        return "sw-resize";
-    }
-    if ((edges & WM_RESIZE_EDGE_BOTTOM) && (edges & WM_RESIZE_EDGE_RIGHT)) {
-        return "se-resize";
-    }
-
-    if (edges & WM_RESIZE_EDGE_TOP) {
-        return "n-resize";
-    }
-    if (edges & WM_RESIZE_EDGE_BOTTOM) {
-        return "s-resize";
-    }
-    if (edges & WM_RESIZE_EDGE_LEFT) {
-        return "w-resize";
-    }
-    if (edges & WM_RESIZE_EDGE_RIGHT) {
-        return "e-resize";
-    }
-
-    return "default";
-}
-
 bool on_pointer_move(wm_pointer_event_t *event){
     destroy_window_list(); //we stop drawing the window list if it's there
 
@@ -498,7 +479,7 @@ bool on_pointer_move(wm_pointer_event_t *event){
     wm_unref_node_at_coords(coords);
 
     if(edges != WM_RESIZE_EDGE_INVALID){
-        wm_set_cursor(get_cursor_for_edge(edges));
+        wm_set_cursor(wm_get_cursor_name_from_edges(edges));
         return false;
     } 
 
@@ -655,7 +636,7 @@ void wm_unregister(){
     wm_plugin_log("Uninitializing the example window manager");
 
     if(window_list_data.initialized){
-        wm_buffer *old_buffer = wm_remove_overlay(WINDOW_LIST_OVERLAY);
+        wm_buffer *old_buffer = wm_unattach_overlay(WINDOW_LIST_OVERLAY);
 
         wm_destroy_buffer(old_buffer);
 

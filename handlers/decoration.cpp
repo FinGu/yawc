@@ -56,7 +56,6 @@ void new_toplevel_decoration(struct wl_listener *listener, void *data){
     auto *decoration = new yawc_toplevel_decoration{};
     decoration->toplevel = toplevel;
     decoration->xdg_decoration = xdg_decoration;
-    decoration->width = 0;
         
     toplevel->decoration = decoration;
 
