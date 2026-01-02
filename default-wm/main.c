@@ -250,6 +250,19 @@ wm_buffer *create_window_list(){
     return window_list_data.buffer;
 }
 
+wm_grip_visual grip_callback(wm_toplevel *toplevel, 
+        int width, 
+        int height, 
+        uint32_t edge_bits,
+        void *user_data){
+    wm_grip_visual out = {};
+
+    out.type = WM_GRIP_VISUAL_COLOR;
+    memset(out.color, 0, sizeof(float)*4); //let's make invisible buffers!
+
+    return out;
+}
+
 wm_buffer *create_decoration(wm_toplevel *toplevel, wm_box_t geometry) {
     if(wm_toplevel_is_csd(toplevel)){ //is client side decoration
         return NULL;
@@ -275,9 +288,11 @@ wm_buffer *create_decoration(wm_toplevel *toplevel, wm_box_t geometry) {
         return NULL;
     }
 
-    wm_configure_toplevel_resize_grips(toplevel, 0, -DECORATION_HEIGHT, geometry.width, old_height 
-            + DECORATION_HEIGHT, RESIZE_MARGIN);
-    //set up a few small boxes around the window for resizing and the like
+    wm_configure_toplevel_resize_grips(toplevel, 0, -DECORATION_HEIGHT, 
+            geometry.width, old_height + DECORATION_HEIGHT, 
+            RESIZE_MARGIN,
+            grip_callback,
+            NULL); //set up a few small boxes around the window for resizing and the like
 
     struct window_data* window_data = wm_get_toplevel_state(toplevel); //check if decoration already exists
 

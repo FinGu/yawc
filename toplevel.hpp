@@ -53,7 +53,7 @@ struct yawc_toplevel {
     void setup_foreign_output_handler();
 
     //top, bottom, left, right, top-left, top-right, bottom-left, bottom-right
-    struct wlr_scene_rect *resize_grips[8];
+    struct wlr_scene_node *resize_grips[8];
     bool has_resize_grips : 1;
 
     struct wlr_scene *image_capture_scene;

@@ -110,8 +110,13 @@ void arrange_surface(struct yawc_output *output, const struct wlr_box *full_area
 		struct wlr_box *usable_area, struct wlr_scene_tree *tree, bool exclusive) {
 	struct wlr_scene_node *node, *tmp;
 	wl_list_for_each_safe(node, tmp, &tree->children, link) {
-		struct yawc_layer_surface *surface = scene_descriptor_try_get(node,
-			YAWC_SCENE_DESC_LAYER_SHELL);
+        struct yawc_scene_descriptor *desc = scene_descriptor_try_get(node, YAWC_SCENE_DESC_LAYER_SHELL);
+
+        if(!desc){
+            continue;
+        }
+
+		struct yawc_layer_surface *surface = static_cast<struct yawc_layer_surface*>(desc->parent);
 
 		if (!surface) {
 			continue;
@@ -160,10 +165,15 @@ void arrange_layers(struct yawc_output *output) {
 	struct wlr_scene_node *node;
 	struct yawc_layer_surface *topmost = nullptr;
 	for (size_t i = 0; i < nlayers; ++i) {
-		wl_list_for_each_reverse(node,
-				&layers_above_shell[i]->children, link) {
-			struct yawc_layer_surface *surface = scene_descriptor_try_get(node,
-				YAWC_SCENE_DESC_LAYER_SHELL);
+		wl_list_for_each_reverse(node, &layers_above_shell[i]->children, link) {
+            struct yawc_scene_descriptor *desc = scene_descriptor_try_get(node, YAWC_SCENE_DESC_LAYER_SHELL);
+
+            if(!desc){
+                continue;
+            }
+
+			struct yawc_layer_surface *surface = static_cast<struct yawc_layer_surface*>(desc->parent);
+
 			if (surface && 
                     surface->layer_surface->current.keyboard_interactive == ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_EXCLUSIVE && 
                     surface->layer_surface->surface->mapped) {
@@ -305,7 +315,7 @@ void handle_new_layer_shell_surface(struct wl_listener *listener, void *data){
     xsurface->layer_surface = scene_surface->layer_surface;
 
 	if (!scene_descriptor_assign(&scene_surface->tree->node,
-			YAWC_SCENE_DESC_LAYER_SHELL, xsurface, 0)) {
+			YAWC_SCENE_DESC_LAYER_SHELL, xsurface, nullptr)) {
 		wlr_log(WLR_DEBUG, "Failed to allocate a layer surface descriptor");
 		wlr_layer_surface_v1_destroy(layer_surface);
         delete xsurface;

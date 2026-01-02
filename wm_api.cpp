@@ -72,18 +72,17 @@ WM_API wm_toplevel *wm_try_get_toplevel_from_node(wm_node *n) {
         tree = tree->node.parent;
     }
 
-    if (tree == NULL || tree->node.data == NULL) {
+    if (tree == NULL) {
         return nullptr;
     }
 
-    struct yawc_scene_descriptor *desc =
-        static_cast<struct yawc_scene_descriptor*>(tree->node.data);
+    struct yawc_scene_descriptor *desc = scene_descriptor_try_get(&tree->node, YAWC_SCENE_DESC_VIEW);
 
-    if(desc->type != YAWC_SCENE_DESC_VIEW){
+    if(!desc){
         return nullptr;
     }
 
-    return wm_create_toplevel(static_cast<yawc_toplevel*>(desc->data));
+    return wm_create_toplevel(static_cast<yawc_toplevel*>(desc->parent));
 }
 
 WM_API wm_buffer *wm_try_get_buffer_from_node(wm_node *n) {
@@ -139,23 +138,23 @@ WM_API uint32_t wm_try_get_resize_grip(wm_node *n, wm_toplevel **t){
     }
 
     auto *node = n->node;
-    
+
     if(!node || node->type != WLR_SCENE_NODE_RECT){
         return WM_RESIZE_EDGE_INVALID;
     }
 
-    struct yawc_scene_descriptor *desc =
-        static_cast<struct yawc_scene_descriptor*>(node->data);
+    auto desc = 
+        scene_descriptor_try_get(node, YAWC_SCENE_DESC_RESIZE_GRIP);
 
-    if(!desc || desc->type != YAWC_SCENE_DESC_RESIZE_GRIP){
+    if(!desc){
         return WM_RESIZE_EDGE_INVALID;
     }
 
     if(t){
-        *t = wm_create_toplevel(reinterpret_cast<yawc_toplevel*>(desc->data));
+        *t = wm_create_toplevel(reinterpret_cast<struct yawc_toplevel*>(desc->parent));
     }
 
-    return desc->resize_edges;
+    return (uint32_t)(uintptr_t)desc->data;
 }
 
 WM_API int wm_get_amount_of_toplevels(){
@@ -400,7 +399,84 @@ WM_API void wm_close_toplevel(wm_toplevel *t) {
     wlr_xdg_toplevel_send_close(t->toplevel->xdg_toplevel);
 }
 
-WM_API void wm_configure_toplevel_resize_grips_with_color(wm_toplevel *t, int off_x, int off_y, int width, int height, int grip_thickness, float color[4]){
+wlr_scene_node *create_grip_for_toplevel(wm_grip_visual grip, yawc_toplevel *toplevel, 
+        int width, int height, uint32_t bits){
+    struct wlr_scene_node *node = nullptr;
+
+    if(grip.type == WM_GRIP_VISUAL_NONE){
+        return node;
+    }
+    
+    if(grip.type == WM_GRIP_VISUAL_COLOR){
+        auto rect = wlr_scene_rect_create(toplevel->scene_tree, width, height, grip.color);
+        node = &rect->node;
+    } else{
+        if(!grip.buffer){
+            return nullptr; 
+        }
+
+        auto buf = wlr_scene_buffer_create(toplevel->scene_tree, grip.buffer->buffer);
+        node = &buf->node;
+    }
+
+    if(node){
+        scene_descriptor_assign(node, YAWC_SCENE_DESC_RESIZE_GRIP, toplevel, 
+                (void*)(uintptr_t)bits);
+    }
+
+    return node;
+}
+
+void update_toplevel_resize_grip(
+        wm_toplevel *toplevel,
+        struct wlr_scene_node **node, 
+        int x, int y, 
+        int width, int height, 
+        wm_grip_render_cb render_callback,
+        uint32_t bits,
+        void *user_data){
+
+    wm_grip_visual grip = render_callback(toplevel, width, height, bits, user_data);
+
+    auto *ytoplevel = toplevel->toplevel;
+
+    if (!*node) {
+        *node = create_grip_for_toplevel(grip, ytoplevel, width, height, bits);
+    } else {
+        bool needs_destroying = false;
+
+        needs_destroying = (*node)->type == WLR_SCENE_NODE_BUFFER && grip.type != WM_GRIP_VISUAL_BUFFER;
+        needs_destroying = (*node)->type == WLR_SCENE_NODE_RECT && grip.type != WM_GRIP_VISUAL_COLOR;
+        needs_destroying = grip.type == WM_GRIP_VISUAL_NONE;
+
+        if(needs_destroying){
+            wlr_scene_node_destroy(*node); 
+            *node = create_grip_for_toplevel(grip, ytoplevel, width, height, bits);
+        } else if (grip.type == WM_GRIP_VISUAL_COLOR) {
+            auto *rect = wlr_scene_rect_from_node(*node);
+            wlr_scene_rect_set_size(rect, width, height);
+            wlr_scene_rect_set_color(rect, grip.color);
+        }  else if (grip.type == WM_GRIP_VISUAL_BUFFER && grip.buffer) {
+            auto *scene_buf = wlr_scene_buffer_from_node(*node);
+            wlr_scene_buffer_set_buffer(scene_buf, grip.buffer->buffer);
+        }
+    }
+
+    if(!*node){
+        return;
+    }
+
+    wlr_scene_node_set_position(*node, x, y);
+    wlr_scene_node_raise_to_top(*node);
+}
+
+WM_API void wm_configure_toplevel_resize_grips(
+    wm_toplevel *t, 
+    int off_x, int off_y, 
+    int width, int height, 
+    int grip_thickness, 
+    wm_grip_render_cb render_cb,
+    void *user_data){
     if (!t) {
         return;
     }
@@ -411,83 +487,89 @@ WM_API void wm_configure_toplevel_resize_grips_with_color(wm_toplevel *t, int of
         return; 
     }
 
-    auto update = [&](struct wlr_scene_rect **r, int x, int y, int w, int h, uint32_t bits) {
-        if (!*r) {
-            *r = wlr_scene_rect_create(toplevel->scene_tree, w, h, color);
+    update_toplevel_resize_grip(t,
+        &toplevel->resize_grips[4], 
+        off_x - grip_thickness, 
+        off_y - grip_thickness, 
+        grip_thickness, 
+        grip_thickness,
+        render_cb,
+        WM_RESIZE_EDGE_TOP | WM_RESIZE_EDGE_LEFT,
+        user_data);
 
-            scene_descriptor_assign(&(*r)->node, YAWC_SCENE_DESC_RESIZE_GRIP, toplevel, bits);
-        } else {
-            wlr_scene_rect_set_size(*r, w, h);
-        }
-        wlr_scene_node_set_position(&(*r)->node, x, y);
-        wlr_scene_node_raise_to_top(&(*r)->node);
-    };
-
-    update(&toplevel->resize_grips[4], 
-            off_x - grip_thickness, 
-            off_y - grip_thickness, 
-            grip_thickness, 
-            grip_thickness,
-            WM_RESIZE_EDGE_TOP | WM_RESIZE_EDGE_LEFT);
-
-    update(&toplevel->resize_grips[5], 
-            off_x + width, 
-            off_y - grip_thickness, 
-            grip_thickness, 
-            grip_thickness,
-            WM_RESIZE_EDGE_TOP | WM_RESIZE_EDGE_RIGHT);
+    update_toplevel_resize_grip(t,
+        &toplevel->resize_grips[5], 
+        off_x + width, 
+        off_y - grip_thickness, 
+        grip_thickness, 
+        grip_thickness,
+        render_cb,
+        WM_RESIZE_EDGE_TOP | WM_RESIZE_EDGE_RIGHT,
+        user_data);
     
-    update(&toplevel->resize_grips[6], 
-            off_x - grip_thickness, 
-            off_y + height, 
-            grip_thickness, 
-            grip_thickness,
-            WM_RESIZE_EDGE_BOTTOM | WM_RESIZE_EDGE_LEFT);
+    update_toplevel_resize_grip(t, 
+        &toplevel->resize_grips[6], 
+        off_x - grip_thickness, 
+        off_y + height, 
+        grip_thickness, 
+        grip_thickness,
+        render_cb,
+        WM_RESIZE_EDGE_BOTTOM | WM_RESIZE_EDGE_LEFT,
+        user_data);
 
-    update(&toplevel->resize_grips[7], 
-            off_x + width, 
-            off_y + height, 
-            grip_thickness, 
-            grip_thickness,
-            WM_RESIZE_EDGE_BOTTOM | WM_RESIZE_EDGE_RIGHT);
+    update_toplevel_resize_grip(t,
+        &toplevel->resize_grips[7], 
+        off_x + width, 
+        off_y + height, 
+        grip_thickness, 
+        grip_thickness,
+        render_cb,
+        WM_RESIZE_EDGE_BOTTOM | WM_RESIZE_EDGE_RIGHT,
+        user_data);
 
-    update(&toplevel->resize_grips[0], 
+    update_toplevel_resize_grip(t,
+        &toplevel->resize_grips[0], 
         off_x, 
         off_y - grip_thickness, 
         width, 
         grip_thickness,
-        WM_RESIZE_EDGE_TOP);
+        render_cb,
+        WM_RESIZE_EDGE_TOP,
+        user_data);
 
-    update(&toplevel->resize_grips[1], 
+    update_toplevel_resize_grip(t,
+        &toplevel->resize_grips[1], 
         off_x, 
         off_y + height, 
         width, 
         grip_thickness,
-        WM_RESIZE_EDGE_BOTTOM);
+        render_cb,
+        WM_RESIZE_EDGE_BOTTOM,
+        user_data);
 
-    update(&toplevel->resize_grips[2], 
+    update_toplevel_resize_grip(t,
+        &toplevel->resize_grips[2], 
         off_x - grip_thickness, 
         off_y, 
         grip_thickness, 
         height,
-        WM_RESIZE_EDGE_LEFT);
+        render_cb,
+        WM_RESIZE_EDGE_LEFT,
+        user_data);
 
-    update(&toplevel->resize_grips[3], 
+    update_toplevel_resize_grip(t,
+        &toplevel->resize_grips[3], 
         off_x + width, 
         off_y, 
         grip_thickness, 
         height,
-        WM_RESIZE_EDGE_RIGHT);
+        render_cb,
+        WM_RESIZE_EDGE_RIGHT,
+        user_data);
 
    toplevel->has_resize_grips = true;
 }
  
-WM_API void wm_configure_toplevel_resize_grips(wm_toplevel *t, int off_x, int off_y, int width, int height, int grip_thickness){
-    static float clear[4] = {0,0,0,0};
-
-    wm_configure_toplevel_resize_grips_with_color(t, off_x, off_y, width, height, grip_thickness, clear);
-}
-
 WM_API wm_box_t wm_get_output_geometry(wm_output *o) {
     wm_box_t out = {0};
 

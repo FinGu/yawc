@@ -140,7 +140,9 @@ void handle_toplevel_destroy(struct wl_listener* listener, void* data)
 
     if(toplevel->has_resize_grips){
         for(size_t i = 0; i < 8; ++i){
-            scene_descriptor_destroy(&toplevel->resize_grips[i]->node);
+            scene_descriptor_destroy(toplevel->resize_grips[i]);
+
+            toplevel->resize_grips[i] = nullptr;
         }
     }
 

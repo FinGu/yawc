@@ -44,18 +44,17 @@ utils::desktop_toplevel_at(yawc_server* server, double lx, double ly)
         tree = tree->node.parent;
     }
 
-    if (tree == NULL || tree->node.data == NULL) {
+    if (tree == NULL) {
+        return std::make_tuple(nullptr, out);
+    }
+    
+    auto desc = scene_descriptor_try_get(&tree->node, YAWC_SCENE_DESC_VIEW);
+
+    if(!desc){
         return std::make_tuple(nullptr, out);
     }
 
-    struct yawc_scene_descriptor *desc =
-        static_cast<struct yawc_scene_descriptor*>(tree->node.data);
-
-    if (desc->type == YAWC_SCENE_DESC_VIEW) {
-        return std::make_tuple(static_cast<yawc_toplevel*>(desc->data), out);
-    }
-
-    return std::make_tuple(nullptr, out);
+    return std::make_tuple(static_cast<struct yawc_toplevel*>(desc->parent), out);
 }
 
 std::tuple<wlr_scene_node*, yawc_input_on_node>

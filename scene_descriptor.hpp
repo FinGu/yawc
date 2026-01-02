@@ -13,15 +13,17 @@ enum yawc_scene_descriptor_type {
 
 struct yawc_scene_descriptor{
 	enum yawc_scene_descriptor_type type;
+	void *parent;
+
 	void *data;
-	uint32_t resize_edges;
+
 	struct wl_listener destroy;
 };
 
 bool scene_descriptor_assign(struct wlr_scene_node *node,
-	enum yawc_scene_descriptor_type type, void *data, uint32_t resize_edges);
+	enum yawc_scene_descriptor_type type, void *parent, void *data);
 
-struct yawc_layer_surface *scene_descriptor_try_get(struct wlr_scene_node *node, enum yawc_scene_descriptor_type type);
+yawc_scene_descriptor *scene_descriptor_try_get(struct wlr_scene_node *node, enum yawc_scene_descriptor_type type);
 
 void scene_descriptor_destroy(struct wlr_scene_node *node);
 

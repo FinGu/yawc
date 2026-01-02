@@ -57,7 +57,10 @@ void handle_seat_destroy(struct wl_listener *listener, void *data){
 
 	wl_list_remove(&server->drag.events.request.link);
 	wl_list_remove(&server->drag.events.start.link);
-	wl_list_remove(&server->drag.events.destroy.link);
+
+	if(server->drag.running){
+		wl_list_remove(&server->drag.events.destroy.link);
+	}
 
 	wl_list_remove(&server->seat_destroy.link);
 

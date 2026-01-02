@@ -13,14 +13,17 @@ void scene_descriptor_destroy(struct wlr_scene_node *node){
 	if(!desc){
 		return;
 	}
-        
+
+	desc->parent = nullptr;
+	desc->data = nullptr;
+
 	node->data = nullptr;
 
     delete desc;
 }
 
 bool scene_descriptor_assign(struct wlr_scene_node *node,
-		enum yawc_scene_descriptor_type type, void *data, uint32_t resize_edges) {
+		enum yawc_scene_descriptor_type type, void *parent, void *data) {
 
 	struct yawc_scene_descriptor *desc = new yawc_scene_descriptor{};
 
@@ -30,26 +33,27 @@ bool scene_descriptor_assign(struct wlr_scene_node *node,
 	}
 
 	desc->type = type;
+
+	desc->parent = parent;
 	desc->data = data;
-	desc->resize_edges = resize_edges;
 
 	node->data = desc;
 
 	return true;
 }
 
-struct yawc_layer_surface *scene_descriptor_try_get(struct wlr_scene_node *node,
+struct yawc_scene_descriptor *scene_descriptor_try_get(struct wlr_scene_node *node,
         enum yawc_scene_descriptor_type type) {
 
     if (!node) {
-        return NULL;
+        return nullptr;
     }
 
     struct yawc_scene_descriptor *desc = static_cast<struct yawc_scene_descriptor*>(node->data);
 
     if (!desc || desc->type != type) {
-        return NULL;
+        return nullptr;
     }
 
-    return static_cast<struct yawc_layer_surface *>(desc->data);
+	return desc;
 }

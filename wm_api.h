@@ -197,17 +197,37 @@ WM_API void wm_hide_toplevel(wm_toplevel *t);
 WM_API void wm_unhide_toplevel(wm_toplevel *t);
 WM_API void wm_close_toplevel(wm_toplevel *t);
 
-WM_API void wm_configure_toplevel_resize_grips(wm_toplevel *t, 
-                                                 int off_x, int off_y, 
-                                                 int width, int height, 
-                                                 int grip_thickness);
+WM_API wm_buffer *wm_render_rect(int width, int height, float color[4]);
 
-WM_API void wm_configure_toplevel_resize_grips_with_color(wm_toplevel *t, 
-                                                 int off_x, int off_y, 
-                                                 int width, int height, 
-                                                 int grip_thickness,
-                                                 float color[4]);
+typedef enum {
+    WM_GRIP_VISUAL_NONE,
+    WM_GRIP_VISUAL_COLOR,  //wlr_scene_rect
+    WM_GRIP_VISUAL_BUFFER  //wlr_scene_buffer
+} wm_grip_visual_type;
 
+typedef struct {
+    wm_grip_visual_type type;
+    union {
+        float color[4];
+        wm_buffer *buffer;
+    };
+} wm_grip_visual;
+
+typedef wm_grip_visual (*wm_grip_render_cb)(
+        wm_toplevel *t, 
+        int width, 
+        int height, 
+        uint32_t edge_bits, 
+        void *user_data);
+
+WM_API void wm_configure_toplevel_resize_grips(
+    wm_toplevel *t, 
+    int off_x, int off_y, 
+    int width, int height, 
+    int grip_thickness, 
+    wm_grip_render_cb render_cb,
+    void *user_data
+);
 
 WM_API const char *wm_get_toplevel_title(wm_toplevel *t);
 WM_API uint64_t wm_get_toplevel_id(wm_toplevel *t);

@@ -454,7 +454,7 @@ yawc_toplevel *create_toplevel_xdg(yawc_server *server, struct wlr_xdg_toplevel 
     toplevel->scene_tree = wlr_scene_xdg_surface_create(server->layers.normal, xdg_toplevel->base);
 
     if (!scene_descriptor_assign(&toplevel->scene_tree->node,
-            YAWC_SCENE_DESC_VIEW, toplevel, 0)) {
+            YAWC_SCENE_DESC_VIEW, toplevel, nullptr)) {
         wlr_log(WLR_ERROR, "Failed to assign scene descriptor to toplevel");
         wlr_scene_node_destroy(&toplevel->scene_tree->node);
         delete toplevel;
@@ -464,6 +464,7 @@ yawc_toplevel *create_toplevel_xdg(yawc_server *server, struct wlr_xdg_toplevel 
     xdg_toplevel->base->data = toplevel->scene_tree;
 
     toplevel->has_resize_grips = false;
+    
     toplevel->wm_state = nullptr;
     toplevel->last_geo = {0};
 

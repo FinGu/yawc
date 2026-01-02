@@ -51,6 +51,7 @@ void on_drag_destroy(struct wl_listener *listener, void *data)
 
 	server->drag.running = false;
 	wl_list_remove(&server->drag.events.destroy.link);
+
 	wlr_scene_node_set_enabled(&server->drag.icons->node, false);
 
 	auto *last = utils::previous_toplevel(server);
