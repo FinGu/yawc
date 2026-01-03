@@ -58,6 +58,7 @@ extern "C" {
 #include <wlr/types/wlr_single_pixel_buffer_v1.h>
 #include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_cursor_shape_v1.h>
+#include <wlr/types/wlr_presentation_time.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
 #include "extra/hyprland-global-shortcuts-v1.h"

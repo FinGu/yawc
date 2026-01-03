@@ -116,6 +116,10 @@ void handle_cursor_button(struct wl_listener* listener,
     }
     
     if(event->state == WL_POINTER_BUTTON_STATE_RELEASED){
+        if(server->current_mouse_operation != yawc_mouse_operation::NOTHING){
+            wlr_cursor_set_xcursor(server->cursor, server->cursor_mgr, "default");
+        }
+
         server->reset_cursor_mode();
     }
     

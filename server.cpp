@@ -227,6 +227,7 @@ yawc_server_error yawc_server::run() {
 
     create_scene();
 
+
 	if (this->linux_dmabuf_v1) {
 		wlr_scene_set_linux_dmabuf_v1(this->scene, this->linux_dmabuf_v1);
 	}
@@ -244,6 +245,7 @@ yawc_server_error yawc_server::run() {
 
     setup_shortcuts();
 
+	wlr_presentation_create(this->wl_display, this->backend, 2);
     wlr_fractional_scale_manager_v1_create(this->wl_display, 1);
     wlr_data_control_manager_v1_create(this->wl_display);
     

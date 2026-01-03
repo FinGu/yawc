@@ -134,10 +134,6 @@ void handle_toplevel_destroy(struct wl_listener* listener, void* data)
     wlr_log(WLR_DEBUG, "Destroying toplevel");
     struct yawc_toplevel* toplevel = wl_container_of(listener, toplevel, events.destroy);
 
-    if (toplevel == toplevel->server->grabbed_toplevel) {
-        toplevel->server->reset_cursor_mode();
-    }
-
     if(toplevel->has_resize_grips){
         for(size_t i = 0; i < 8; ++i){
             scene_descriptor_destroy(toplevel->resize_grips[i]);
