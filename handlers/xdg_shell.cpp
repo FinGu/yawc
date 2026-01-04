@@ -5,6 +5,8 @@
 #include "../window_ops.hpp"
 #include "../wm_defs.hpp"
 
+#include "../decoration.hpp"
+
 void popup_unconstrain(struct yawc_popup *popup) {
 	struct yawc_toplevel *toplevel = popup->toplevel;
 	struct wlr_xdg_popup *wlr_popup = popup->xdg_popup;
@@ -58,6 +60,10 @@ void handle_toplevel_commit(struct wl_listener* listener, void* data){
     struct yawc_toplevel* toplevel = wl_container_of(listener, toplevel, events.commit);
     
     if (toplevel->xdg_toplevel->base->initial_commit) {
+        if(toplevel->decoration){
+            toplevel_decoration_request_mode(&toplevel->decoration->request_mode, nullptr);
+        }
+
 		wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
         return;
     }
