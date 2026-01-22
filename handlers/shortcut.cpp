@@ -1,5 +1,5 @@
-#include "server.hpp"
 #include <fstream>
+#include "server.hpp"
 
 void on_shortcut_destroy(struct wl_listener *listener, void *data){
     struct yawc_global_shortcut *shortcut = wl_container_of(listener, shortcut, destroy);

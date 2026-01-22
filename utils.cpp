@@ -1,11 +1,11 @@
+#include <fstream>
+#include <linux/input-event-codes.h>
+#include <unistd.h>
+
 #include "utils.hpp"
 
 #include "layer.hpp"
 #include "toplevel.hpp"
-
-#include <fstream>
-#include <linux/input-event-codes.h>
-#include <unistd.h>
 
 std::tuple<yawc_toplevel*, yawc_input_on_surface>
 utils::desktop_toplevel_at(yawc_server* server, double lx, double ly)
