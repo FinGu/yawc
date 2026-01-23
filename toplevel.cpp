@@ -153,6 +153,7 @@ void yawc_toplevel::unmap(){
         wl_list_remove(&this->foreign_request_minimize.link);
 
         wlr_foreign_toplevel_handle_v1_destroy(this->foreign_handle);
+		this->foreign_handle = nullptr;
     }
 
     if(this->image_capture_scene_surface){
