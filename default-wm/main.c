@@ -499,7 +499,7 @@ double get_time_diff(struct timespec end, struct timespec start) {
 }
 
 void handle_click_gestures(wm_pointer_event_t *event, struct window_data *data, wm_toplevel *toplevel, uint32_t edges) {
-    if (event->button != BTN_LEFT) {
+    if(event->button != BTN_LEFT) {
         return;
     }
 
@@ -521,7 +521,7 @@ void handle_click_gestures(wm_pointer_event_t *event, struct window_data *data, 
     int dy = abs(data->last_click_y - (int)event->global_y);
         
     //check for double clicks within a time frame
-    if (time_diff < DOUBLE_CLICK_THRESHOLD && dx < COORDS_THRESHOLD && dy < COORDS_THRESHOLD) {
+    if(time_diff < DOUBLE_CLICK_THRESHOLD && dx < COORDS_THRESHOLD && dy < COORDS_THRESHOLD) {
         maximize_window(toplevel);
             
         data->last_left_click.tv_sec = 0; 
@@ -567,7 +567,12 @@ bool on_pointer_button(wm_pointer_event_t *event){
     toplevel = wm_try_get_toplevel_from_node(node);
     
     if(toplevel){ //if is a window we focus it
-        wm_focus_toplevel(toplevel);
+        if(event->pressed){
+            wm_focus_toplevel(toplevel);
+        } else{
+            pass_event_back = false;
+        }
+        
         goto free_toplevel;
     }
 
