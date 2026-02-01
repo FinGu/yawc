@@ -181,6 +181,9 @@ void yawc_server::create_scene()
 
     wlr_viewporter_create(this->wl_display);
 	wlr_single_pixel_buffer_manager_v1_create(this->wl_display);
+
+    this->gamma_control_manager = wlr_gamma_control_manager_v1_create(this->wl_display);
+    wlr_scene_set_gamma_control_manager_v1(this->scene, this->gamma_control_manager);
 }
 
 yawc_server_error yawc_server::setup_backend(){
