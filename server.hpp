@@ -59,6 +59,7 @@ extern "C" {
 #include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_cursor_shape_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
+#include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/util/region.h>
 #include <wlr/util/log.h>
 #include "extra/hyprland-global-shortcuts-v1.h"
@@ -238,6 +239,8 @@ public:
 
     struct wlr_data_device_manager *data_device_manager;
     struct wlr_primary_selection_v1_device_manager *primary_selection_manager;
+
+    struct wlr_gamma_control_manager_v1 *gamma_control_manager;
 
     struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1* ext_foreign_toplevel_image_capture_source_manager_v1;
 

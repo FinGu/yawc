@@ -65,6 +65,11 @@ void handle_toplevel_commit(struct wl_listener* listener, void* data){
         }
 
 		wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
+	    wlr_xdg_toplevel_set_wm_capabilities(toplevel->xdg_toplevel,
+			WLR_XDG_TOPLEVEL_WM_CAPABILITIES_FULLSCREEN | 
+            WLR_XDG_TOPLEVEL_WM_CAPABILITIES_MAXIMIZE | 
+            WLR_XDG_TOPLEVEL_WM_CAPABILITIES_MINIMIZE |
+            WLR_XDG_TOPLEVEL_WM_CAPABILITIES_WINDOW_MENU);
         return;
     }
 
@@ -271,7 +276,7 @@ void yawc_server::create_xdg_shell()
 {
     wlr_log(WLR_DEBUG, "Initializing toplevels");
 
-    this->xdg_shell = wlr_xdg_shell_create(this->wl_display, 3);
+    this->xdg_shell = wlr_xdg_shell_create(this->wl_display, 5);
 
     this->new_xdg_toplevel_listener.notify = handle_new_toplevel;
     wl_signal_add(&this->xdg_shell->events.new_toplevel,
