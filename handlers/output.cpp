@@ -34,7 +34,9 @@ void reorganize_toplevels(struct yawc_server *sv, struct wlr_output *old_output)
             continue;
         }
 
-        if(utils::get_output_of_toplevel(toplevel)->wlr_output != old_output){
+        auto *output = utils::get_output_of_toplevel(toplevel);
+
+        if(output && output->wlr_output != old_output){
             continue;
         }
 
