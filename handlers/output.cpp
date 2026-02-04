@@ -13,7 +13,7 @@ void reorganize_toplevels(struct yawc_server *sv, struct wlr_output *old_output)
     struct yawc_output *next_output;
 
     wl_list_for_each(next_output, &sv->outputs, link){
-        if(next_output->wlr_output == old_output){
+        if(old_output && next_output->wlr_output == old_output){
             continue;
         }
 
@@ -24,10 +24,16 @@ void reorganize_toplevels(struct yawc_server *sv, struct wlr_output *old_output)
         break;
     }
 
-    struct wlr_box next_box;
-    wlr_output_layout_get_box(sv->output_layout, next_output->wlr_output, &next_box);
-    //ideally we could calculate a position relative to the old output
+    int dest_x = 0, dest_y = 0;
 
+    if (next_output) {
+        struct wlr_box next_box;
+        wlr_output_layout_get_box(sv->output_layout, next_output->wlr_output, &next_box);
+        dest_x = next_box.x;
+        dest_y = next_box.y;
+    }
+
+    //ideally we could calculate a position relative to the old output
     struct yawc_toplevel *toplevel, *tmpt;
     wl_list_for_each_safe(toplevel, tmpt, &sv->toplevels, link){
         if(!toplevel->scene_tree){
@@ -40,7 +46,7 @@ void reorganize_toplevels(struct yawc_server *sv, struct wlr_output *old_output)
             continue;
         }
 
-        wlr_scene_node_set_position(&toplevel->scene_tree->node, next_box.x, next_box.y);
+        wlr_scene_node_set_position(&toplevel->scene_tree->node, dest_x, dest_y);
     }
 }
 
@@ -58,7 +64,12 @@ bool apply_output_config(struct yawc_server *server,
     wlr_output_state_set_enabled(&pending, state->enabled);
 
     if(state->enabled){
-        wlr_output_layout_add(output_layout, output, state->x, state->y);
+        struct wlr_output_layout_output *l_output = wlr_output_layout_add(output_layout, output, state->x, state->y);
+
+        if (!only_test) {
+            struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(server->scene, output);
+            wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
+        }
     } else{
         wlr_output_layout_remove(output_layout, output);
 
@@ -88,7 +99,7 @@ bool apply_output_config(struct yawc_server *server,
 
     ok = wlr_output_commit_state(output, &pending);
     wlr_output_state_finish(&pending);
-
+    
     return ok;
 }
 
@@ -257,6 +268,8 @@ void destroy_output(struct wl_listener *listener, void *data){
 
     struct yawc_output* output = wl_container_of(listener, output, destroy);
 
+    auto *server = output->server;
+
     wl_list_remove(&output->commit.link);
     wl_list_remove(&output->frame.link);
     wl_list_remove(&output->request_state.link);
@@ -271,9 +284,11 @@ void destroy_output(struct wl_listener *listener, void *data){
         wlr_layer_surface_v1_destroy(layer->layer_surface);
     }
 
-    reorganize_toplevels(output->server, output->wlr_output);
-
     delete output; 
+
+    update_output_manager_config(server);
+
+    reorganize_toplevels(server, nullptr);
 }
 
 void yawc_server::handle_new_output(struct wl_listener* listener, void* data){
