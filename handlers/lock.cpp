@@ -12,6 +12,8 @@ struct yawc_session_lock_output{
 
 	struct yawc_output *output;
 
+	struct yawc_server *server;
+
 	struct wl_list link;
 
 	struct wl_listener destroy;
@@ -39,7 +41,7 @@ void lock_output_reconfigure(struct yawc_session_lock_output *output) {
 }
 
 void refocus_output(struct yawc_session_lock_output *output) {
-	auto *server = output->output->server;
+	auto *server = output->server;
 
 	if (server->cur_lock.focused == output->surface->surface) {
 		struct wlr_surface *next_focus = NULL;
@@ -130,6 +132,8 @@ yawc_session_lock_output *session_lock_output_create(yawc_server *sv, yawc_outpu
 		return die();
 	}
 
+	lock_output->server = sv;
+
 	lock_output->output = output;
 	lock_output->tree = tree;
 	lock_output->background = background;
@@ -146,7 +150,7 @@ yawc_session_lock_output *session_lock_output_create(yawc_server *sv, yawc_outpu
 
 void handle_surface_map(struct wl_listener *listener, void *data) {
 	struct yawc_session_lock_output *surf = wl_container_of(listener, surf, surface_map);
-	auto *server = surf->output->server;
+	auto *server = surf->server;
 
 	if (server->cur_lock.focused == NULL) {
 		focus_surface(server, surf->surface->surface);
