@@ -248,6 +248,11 @@ yawc_server_error yawc_server::run() {
 
     setup_shortcuts();
 
+    struct wlr_xdg_foreign_registry *foreign_registry =
+		wlr_xdg_foreign_registry_create(this->wl_display);
+	wlr_xdg_foreign_v1_create(this->wl_display, foreign_registry);
+	wlr_xdg_foreign_v2_create(this->wl_display, foreign_registry);
+
 	wlr_presentation_create(this->wl_display, this->backend, 2);
     wlr_fractional_scale_manager_v1_create(this->wl_display, 1);
     wlr_data_control_manager_v1_create(this->wl_display);
