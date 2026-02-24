@@ -88,6 +88,7 @@ bool apply_output_config(struct yawc_server *server,
         wlr_output_state_set_scale(&pending, state->scale);
     }
 
+    wlr_output_state_set_adaptive_sync_enabled(&pending, state->adaptive_sync_enabled);
     wlr_output_state_set_transform(&pending, state->transform);
 
     bool ok = wlr_output_test_state(output, &pending);
