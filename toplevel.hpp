@@ -44,8 +44,7 @@ struct yawc_toplevel {
     struct wl_listener foreign_request_minimize, 
                        foreign_request_activate, 
                        foreign_request_close,
-                       foreign_output_enter,
-                       foreign_output_leave,
+                       foreign_outputs_update,
                        foreign_output_handler_destroy;
 
     void setup_foreign_output_handler();

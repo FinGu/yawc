@@ -392,47 +392,50 @@ void yawc_toplevel::set_app_id(const char *app_id){
 void on_toplevel_output_handler_destroy(struct wl_listener *listener, void *data){
     struct yawc_toplevel *toplevel = wl_container_of(listener, toplevel, foreign_output_handler_destroy);
 
-    wl_list_remove(&toplevel->foreign_output_enter.link);
-    wl_list_remove(&toplevel->foreign_output_leave.link);
+    wl_list_remove(&toplevel->foreign_outputs_update.link);
     wl_list_remove(&toplevel->foreign_output_handler_destroy.link);
 }
 
-void on_toplevel_output_enter(struct wl_listener *listener, void *data){
-    struct yawc_toplevel *toplevel = wl_container_of(listener, toplevel, foreign_output_enter);
+void on_toplevel_output_update(struct wl_listener *listener, void *data){
+    struct yawc_toplevel *toplevel = wl_container_of(listener, toplevel, foreign_outputs_update);
 
     if(!toplevel->foreign_handle){
         return;
     }
 
-	struct wlr_scene_output *output = reinterpret_cast<struct wlr_scene_output *>(data);
+    struct wlr_foreign_toplevel_handle_v1 *foreign_toplevel = toplevel->foreign_handle;
 
-    wlr_foreign_toplevel_handle_v1_output_enter(toplevel->foreign_handle, output->output);
+    struct wlr_scene_outputs_update_event *event = reinterpret_cast<struct wlr_scene_outputs_update_event*>(data);
 
-    float scale = output->output->scale;
-    wlr_fractional_scale_v1_notify_scale(toplevel->xdg_toplevel->base->surface, scale);
-    wlr_surface_set_preferred_buffer_scale(toplevel->xdg_toplevel->base->surface, ceil(scale));
-}
+	struct wlr_foreign_toplevel_handle_v1_output *toplevel_output, *tmp;
 
-void on_toplevel_output_leave(struct wl_listener *listener, void *data){
-    struct yawc_toplevel *toplevel = wl_container_of(listener, toplevel, foreign_output_leave);
+	wl_list_for_each_safe(toplevel_output, tmp, &foreign_toplevel->outputs, link) {
+		bool active = false;
+		for (size_t i = 0; i < event->size; i++) {
+			struct wlr_scene_output *scene_output = event->active[i];
+			if (scene_output->output == toplevel_output->output) {
+				active = true;
+				break;
+			}
+		}
 
-    if(!toplevel->foreign_handle){
-        return;
+		if (!active) {
+			wlr_foreign_toplevel_handle_v1_output_leave(foreign_toplevel, toplevel_output->output);
+		}
+	}
+
+	for (size_t i = 0; i < event->size; i++) {
+		struct wlr_scene_output *scene_output = event->active[i];
+
+		wlr_foreign_toplevel_handle_v1_output_enter(foreign_toplevel, scene_output->output);
     }
-
-	struct wlr_scene_output *output = reinterpret_cast<struct wlr_scene_output *>(data);
-
-    wlr_foreign_toplevel_handle_v1_output_leave(toplevel->foreign_handle, output->output);
 }
 
 void yawc_toplevel::setup_foreign_output_handler(){
     this->foreign_on_output_handler = wlr_scene_buffer_create(this->scene_tree, NULL);
 
-    this->foreign_output_enter.notify = on_toplevel_output_enter;
-    wl_signal_add(&this->foreign_on_output_handler->events.output_enter, &this->foreign_output_enter);
-
-    this->foreign_output_leave.notify = on_toplevel_output_leave;
-    wl_signal_add(&this->foreign_on_output_handler->events.output_leave, &this->foreign_output_leave);
+    this->foreign_outputs_update.notify = on_toplevel_output_update;
+    wl_signal_add(&this->foreign_on_output_handler->events.outputs_update, &this->foreign_outputs_update);
 
     this->foreign_output_handler_destroy.notify = on_toplevel_output_handler_destroy;
     wl_signal_add(&this->foreign_on_output_handler->node.events.destroy, &this->foreign_output_handler_destroy);

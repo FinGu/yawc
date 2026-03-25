@@ -1,9 +1,33 @@
 #include <getopt.h>
 #include <dlfcn.h>
+#include <signal.h>
 
 #include "server.hpp"
 
 extern yawc_server *wm_server;
+
+void restore_signals(){
+	sigset_t set;
+	sigemptyset(&set);
+	sigprocmask(SIG_SETMASK, &set, NULL);
+
+	struct sigaction sa_dfl;
+    sa_dfl.sa_handler = SIG_DFL;
+     
+	sigaction(SIGCHLD, &sa_dfl, NULL);
+	sigaction(SIGPIPE, &sa_dfl, NULL);
+}
+
+void ignore_signals(){
+	struct sigaction sa_ign;    
+
+    sa_ign.sa_handler = SIG_IGN;
+
+	sigaction(SIGCHLD, &sa_ign, NULL);
+	sigaction(SIGPIPE, &sa_ign, NULL);
+
+	pthread_atfork(NULL, NULL, restore_signals);
+}
 
 int main(int argc, char **argv){
     yawc_server server;
@@ -74,6 +98,8 @@ int main(int argc, char **argv){
     if(wm_module_location){
         server.config->wm_path = wm_module_location;
     }
+
+    ignore_signals();
 
     if (server.run()) {
         wlr_log(WLR_ERROR, "Failed to start the compositor");
