@@ -53,6 +53,7 @@ sudo meson install -C build
 > ```
 
 Configuration is handled via `yawc.toml` (either `~/.config/yawc.toml` or `/etc/yawc/yawc.toml`).
+
 To configure outputs, tools like `wlr-randr` and/or `kanshi` are necessary.
 
 ```toml
