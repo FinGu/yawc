@@ -1,6 +1,10 @@
+#include <fcntl.h>
 #include <fstream>
 #include <linux/input-event-codes.h>
+#include <linux/prctl.h>
+#include <sys/prctl.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #include "utils.hpp"
 
@@ -267,8 +271,13 @@ struct wlr_box utils::get_usable_area_of_output(struct yawc_output *output){
 
 void utils::exec(const char *cmd){
     if (fork() == 0) {
-        execl("/bin/sh", "/bin/sh", "-c", cmd, (void*)NULL);
-        _exit(1);
+        sigset_t set;
+        sigemptyset(&set);
+        sigprocmask(SIG_SETMASK, &set, NULL);
+
+        execl("/bin/sh", "sh", "-c", cmd, (void*)NULL);
+
+        _exit(0);
     }
 }
 
