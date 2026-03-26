@@ -1,6 +1,6 @@
 # yawc (Yet Another Wayland Compositor)
 
-`yawc` is a yet another wayland compositor, built on the latest available wlroots. It is meant solely for me so there WILL NOT be support for anything that i don't/can't use.
+`yawc` is yet another wayland compositor, built on the latest available wlroots. It is meant solely for personal usage so there WILL NOT be support for anything that i don't/can't use.
 
 ## Quirks
 
