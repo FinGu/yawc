@@ -16,13 +16,13 @@ utils::desktop_toplevel_at(yawc_server* server, double lx, double ly)
 {
     double sx, sy;
 
-    if(server->drag.icons){
+    if(server->drag.running){
         wlr_scene_node_set_enabled(&server->drag.icons->node, false);
     }
 
     struct wlr_scene_node* node = wlr_scene_node_at(&server->scene->tree.node, lx, ly, &sx, &sy);
 
-    if(server->drag.icons){ // in case we're grabbing an icon we cant have the drag icon annoying us
+    if(server->drag.running){ // in case we're grabbing an icon we cant have the drag icon annoying us
         wlr_scene_node_set_enabled(&server->drag.icons->node, true);
     }
 
