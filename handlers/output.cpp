@@ -232,6 +232,10 @@ void render_frame(struct wl_listener* listener, void* data){
 
     struct wlr_scene_output* scene_output = wlr_scene_get_scene_output(scene, output->wlr_output);
 
+    if(!wlr_scene_output_needs_frame(scene_output)){
+        return;
+    }
+
     struct wlr_output_state state;
     wlr_output_state_init(&state);
 
