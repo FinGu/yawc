@@ -233,6 +233,9 @@ void render_frame(struct wl_listener* listener, void* data){
     struct wlr_scene_output* scene_output = wlr_scene_get_scene_output(scene, output->wlr_output);
 
     if(!wlr_scene_output_needs_frame(scene_output)){
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        wlr_scene_output_send_frame_done(scene_output, &now);
         return;
     }
 
