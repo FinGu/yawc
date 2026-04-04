@@ -54,7 +54,7 @@ WM_API wm_toplevel *wm_try_get_toplevel_from_node(wm_node *n) {
         return nullptr;
     }
 
-    auto *node = n->node;
+    auto *node = reinterpret_cast<struct wlr_scene_node*>(n->node);
 
     if(node->type != WLR_SCENE_NODE_BUFFER){
         return nullptr;
@@ -90,7 +90,7 @@ WM_API wm_buffer *wm_try_get_buffer_from_node(wm_node *n) {
         return nullptr;
     }
 
-    auto *node = n->node;
+    auto *node = reinterpret_cast<struct wlr_scene_node*>(n->node);
 
     if(node->type != WLR_SCENE_NODE_BUFFER){
         return nullptr;
@@ -104,32 +104,26 @@ WM_API wm_buffer *wm_try_get_buffer_from_node(wm_node *n) {
 }
 
 
-WM_API wm_node_at_coords_t *wm_try_get_node_at_coords(double x, double y){
-        auto [node, input_on_node] = utils::desktop_node_at(wm_server, x, y);
+WM_API wm_node_coords_t wm_try_get_node_at_coords(wm_node *node, double x, double y){
+        auto [snode, input_on_node] = utils::desktop_node_at(wm_server, x, y);
 
-        if(!node){
-            return nullptr;
+        if(!snode){
+            return {};
         }
 
-        wm_node_at_coords_t *coords = new wm_node_at_coords_t;
-        coords->global_x = x;
-        coords->global_y = y;
+        wm_node_coords_t coords;
 
-        coords->node = new wm_node{node};
+        coords.global_x = x;
+        coords.global_y = y;
 
-        coords->local_x = input_on_node.x;
-        coords->local_y = input_on_node.y;
+        coords.local_x = input_on_node.x;
+        coords.local_y = input_on_node.y;
+
+        if(node){
+            *node = wm_node{snode};
+        }
+
         return coords;
-}
-
-WM_API void wm_unref_node_at_coords(wm_node_at_coords_t *coords){
-    if(!coords){
-        return;
-    }
-
-    delete coords->node;
-
-    delete coords;
 }
 
 WM_API uint32_t wm_try_get_resize_grip(wm_node *n, wm_toplevel **t){
@@ -137,7 +131,7 @@ WM_API uint32_t wm_try_get_resize_grip(wm_node *n, wm_toplevel **t){
         return WM_RESIZE_EDGE_INVALID;
     }
 
-    auto *node = n->node;
+    auto *node = reinterpret_cast<struct wlr_scene_node*>(n->node);
 
     if(!node || node->type != WLR_SCENE_NODE_RECT){
         return WM_RESIZE_EDGE_INVALID;

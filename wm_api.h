@@ -26,7 +26,10 @@ extern "C" {
 #  endif
 #endif
 
-typedef struct wm_node wm_node;
+typedef struct wm_node {
+    void *node;
+} wm_node;
+
 typedef struct wm_toplevel wm_toplevel;
 typedef struct wm_output wm_output;
 
@@ -94,12 +97,11 @@ typedef struct {
 } wm_keyboard_event_t;
 
 typedef struct {
-    double global_x;   /* layout/global coords */
+    double global_x;   // layout/global coords
     double global_y;
-    double local_x;    /* local coordinates, wayland */
+    double local_x;    // local coordinates, wayland
     double local_y;
-    wm_node *node;
-} wm_node_at_coords_t;
+} wm_node_coords_t;
 
 typedef struct {
     double global_x; 
@@ -160,8 +162,7 @@ WM_API void wm_unref_toplevels(wm_toplevel **t, size_t amnt);
 WM_API wm_toplevel *wm_get_focused_toplevel(void);
 WM_API void wm_unref_toplevel(wm_toplevel *);
 
-WM_API wm_node_at_coords_t *wm_try_get_node_at_coords(double x, double y);
-WM_API void wm_unref_node_at_coords(wm_node_at_coords_t *coords);
+WM_API wm_node_coords_t wm_try_get_node_at_coords(wm_node *node, double x, double y);
 
 WM_API wm_toplevel *wm_try_get_toplevel_from_node(wm_node*);
 WM_API wm_buffer *wm_try_get_buffer_from_node(wm_node*);
@@ -257,7 +258,7 @@ typedef struct {
 } wm_buffer_data;
 
 /*
-//in case we want to draw something to a cpu buffer, this possible
+//in case we want to draw something to a cpu buffer, this is possible
 //example for format XRGB8888
 wm_buffer_data data = wm_buffer_lock_data(buffer);
 

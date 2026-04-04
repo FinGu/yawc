@@ -468,16 +468,16 @@ bool hover_cursor = false;
 bool on_pointer_move(wm_pointer_event_t *event){
     destroy_window_list(); //we stop drawing the window list if it's there
 
-    wm_node_at_coords_t *coords = wm_try_get_node_at_coords(event->global_x, event->global_y);
+    wm_node node = {NULL};
 
-    if(!coords){
+    wm_try_get_node_at_coords(&node, event->global_x, event->global_y);
+
+    if(!node.node){
         return true;
     }
 
-    uint32_t edges = wm_try_get_resize_grip(coords->node, NULL); 
+    uint32_t edges = wm_try_get_resize_grip(&node, NULL); 
     //that returns us the edges that the pointer is on
-
-    wm_unref_node_at_coords(coords);
 
     if(edges != WM_RESIZE_EDGE_INVALID){
         wm_set_cursor(wm_get_cursor_name_from_edges(edges));
@@ -551,20 +551,20 @@ void handle_click_gestures(wm_pointer_event_t *event, struct window_data *data, 
 }
 
 bool on_pointer_button(wm_pointer_event_t *event){
+    wm_node node = {NULL};
+
     wm_toplevel *toplevel = NULL;
     uint32_t edges = WM_RESIZE_EDGE_INVALID;
 
-    wm_node_at_coords_t *node_with_coords = wm_try_get_node_at_coords(event->global_x, event->global_y);
+    wm_node_coords_t coords = wm_try_get_node_at_coords(&node, event->global_x, event->global_y);
 
-    if(!node_with_coords){
+    if(!node.node){
         return true;
     }
 
-    wm_node *node = node_with_coords->node;
-
     bool pass_event_back = true;
 
-    toplevel = wm_try_get_toplevel_from_node(node);
+    toplevel = wm_try_get_toplevel_from_node(&node);
     
     if(toplevel){ //if is a window we focus it
         if(event->pressed){
@@ -576,7 +576,7 @@ bool on_pointer_button(wm_pointer_event_t *event){
         goto free_toplevel;
     }
 
-    wm_buffer *buffer = wm_try_get_buffer_from_node(node);
+    wm_buffer *buffer = wm_try_get_buffer_from_node(&node);
 
     struct window_data *data;
 
@@ -584,7 +584,7 @@ bool on_pointer_button(wm_pointer_event_t *event){
         toplevel = wm_get_toplevel_of_buffer(buffer);
 
         if(!toplevel){ //if is not a toplevel buffer
-            goto free_node;
+            return pass_event_back;
         }
 
         data = wm_get_toplevel_state(toplevel);
@@ -593,7 +593,7 @@ bool on_pointer_button(wm_pointer_event_t *event){
 
         //handle clicking on what matters
         nk_input_begin(&data->ctx);
-        nk_wm_handle_pointer_event(&data->ctx, event, node_with_coords->local_x, node_with_coords->local_y); 
+        nk_wm_handle_pointer_event(&data->ctx, event, coords.local_x, coords.local_y); 
         nk_input_end(&data->ctx);
 
         wm_render_fn_to_buffer(buffer, draw_titlebar, data);
@@ -604,7 +604,7 @@ bool on_pointer_button(wm_pointer_event_t *event){
 
         goto free_toplevel;
     } 
-    else if((edges = wm_try_get_resize_grip(node, &toplevel)) != WM_RESIZE_EDGE_INVALID){
+    else if((edges = wm_try_get_resize_grip(&node, &toplevel)) != WM_RESIZE_EDGE_INVALID){
         //in case it's not a buffer, it's the resize grip
         
         data = wm_get_toplevel_state(toplevel);
@@ -617,8 +617,6 @@ bool on_pointer_button(wm_pointer_event_t *event){
 
 free_toplevel:
     wm_unref_toplevel(toplevel);
-free_node:
-    wm_unref_node_at_coords(node_with_coords);
     return pass_event_back;
 }
 

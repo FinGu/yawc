@@ -10,10 +10,6 @@ typedef struct wm_output {
     yawc_output *output;
 } wm_output;
 
-typedef struct wm_node {
-    wlr_scene_node *node;
-} wm_node;
-
 typedef struct wm_buffer{
     enum { GL_FOR_TOPLEVEL, GL_OVERLAY } kind;
 
