@@ -270,14 +270,20 @@ struct wlr_box utils::get_usable_area_of_output(struct yawc_output *output){
 }
 
 void utils::exec(const char *cmd){
-    if (fork() == 0) {
+    pid_t pid = fork();
+    if (pid == 0) {
         sigset_t set;
         sigemptyset(&set);
         sigprocmask(SIG_SETMASK, &set, NULL);
 
-        execl("/bin/sh", "sh", "-c", cmd, (void*)NULL);
+        if (fork() == 0) {
+            execl("/bin/sh", "sh", "-c", cmd, (void*)NULL);
+            _exit(0);
+        }
 
         _exit(0);
+    } else if (pid > 0) {
+        waitpid(pid, NULL, 0);
     }
 }
 
