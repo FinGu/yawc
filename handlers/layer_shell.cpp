@@ -185,11 +185,13 @@ void arrange_layers(struct yawc_output *output) {
 			break;
 		}
 	}
+
+    server->has_exclusive_layer = false;
 	
 	if(topmost){
-		output->server->set_focus_layer(topmost->scene->layer_surface);
+		server->set_focus_layer(topmost->scene->layer_surface);
 	}else{
-		output->server->set_focus_layer(nullptr);
+		server->set_focus_layer(nullptr);
 	}
 }
 
