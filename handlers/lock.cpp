@@ -190,6 +190,11 @@ void handle_new_lock_surface(struct wl_listener *listener, void *data){
 		}
 	}
 
+	if(!lock_output){
+		 wlr_log(WLR_ERROR, "No lock output found for surface");                                                                                                                  
+		 return;
+	}
+
 	lock_output->surface = lock_surface;
 
 	wlr_scene_subsurface_tree_create(lock_output->tree, lock_surface->surface);
