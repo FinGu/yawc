@@ -73,7 +73,6 @@ yawc_server::yawc_server(){
     this->compositor = wlr_compositor_create(this->wl_display, 5, this->renderer);
 
     wlr_subcompositor_create(this->wl_display);
-    wlr_data_device_manager_create(this->wl_display);
 
     this->output_layout = wlr_output_layout_create(this->wl_display);
 
