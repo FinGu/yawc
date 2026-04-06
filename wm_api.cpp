@@ -455,9 +455,9 @@ void update_toplevel_resize_grip(
     } else {
         bool needs_destroying = false;
 
-        needs_destroying = (*node)->type == WLR_SCENE_NODE_BUFFER && grip.type != WM_GRIP_VISUAL_BUFFER;
-        needs_destroying = (*node)->type == WLR_SCENE_NODE_RECT && grip.type != WM_GRIP_VISUAL_COLOR;
-        needs_destroying = grip.type == WM_GRIP_VISUAL_NONE;
+        needs_destroying |= (*node)->type == WLR_SCENE_NODE_BUFFER && grip.type != WM_GRIP_VISUAL_BUFFER;
+        needs_destroying |= (*node)->type == WLR_SCENE_NODE_RECT && grip.type != WM_GRIP_VISUAL_COLOR;
+        needs_destroying |= grip.type == WM_GRIP_VISUAL_NONE;
 
         if(needs_destroying){
             wlr_scene_node_destroy(*node); 
