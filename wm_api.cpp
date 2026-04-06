@@ -658,11 +658,20 @@ WM_API wm_box_t wm_get_output_usable_area(wm_output *o) {
 }
 
 WM_API void wm_set_toplevel_fullscreen(wm_toplevel *t, bool f){
+    if(!t){
+        return;
+    }
+
     auto *toplevel = t->toplevel;
+
     toplevel->set_fullscreen(f);
 }
 
 WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m){
+    if(!t){
+        return;
+    }
+
     auto *toplevel = t->toplevel;
 
     toplevel->save_state();
