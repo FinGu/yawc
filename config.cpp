@@ -64,9 +64,6 @@ yawc_pointer_config parse_pointer_config(toml::table &table){
     out.disable_w_typing = table["disable_w_typing"].value<bool>();
     out.disable_w_trackpointing = table["disable_w_trackpointing"].value<bool>();
 
-    out.accel_profile = table["accel_profile"].value<std::string>();
-    out.accel_speed = table["accel_speed"].value<double>();
-
     out.rotation_angle = table["rotation_angle"].value<float>();
 
     out.map_to_output = table["map_to_output"].value<std::string>();
@@ -74,7 +71,7 @@ yawc_pointer_config parse_pointer_config(toml::table &table){
     return out;
 }
 
-constexpr std::array<std::string_view, 5> reserved_tables = {
+constexpr std::array<std::string_view, 4> reserved_tables = {
     "pointer",
     "keyboard",
     "environment",
