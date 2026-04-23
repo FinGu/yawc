@@ -1,8 +1,8 @@
 #include "toplevel.hpp"
 
 void handle_new_foreign_toplevel_capture_request(struct wl_listener *listener, void *data) {
-	struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request *request = 
-        reinterpret_cast<struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request*>(data);
+	struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_event *request = 
+        reinterpret_cast<struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_event*>(data);
 
 	struct yawc_toplevel *toplevel = reinterpret_cast<struct yawc_toplevel*>(request->toplevel_handle->data);
 
@@ -37,7 +37,7 @@ void yawc_server::setup_screensharing(){
 	    wlr_ext_foreign_toplevel_image_capture_source_manager_v1_create(this->wl_display, 1);
 
 	this->new_foreign_toplevel_capture_request.notify = handle_new_foreign_toplevel_capture_request;
-	wl_signal_add(&this->ext_foreign_toplevel_image_capture_source_manager_v1->events.new_request, &this->new_foreign_toplevel_capture_request);
+	wl_signal_add(&this->ext_foreign_toplevel_image_capture_source_manager_v1->events.capture_request, &this->new_foreign_toplevel_capture_request);
 
 	this->foreign_toplevel_capture_handler_destroy.notify = handle_foreign_toplevel_capture_manager_destroy;
 	wl_signal_add(&this->ext_foreign_toplevel_image_capture_source_manager_v1->events.destroy, &this->foreign_toplevel_capture_handler_destroy);
