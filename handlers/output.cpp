@@ -10,7 +10,7 @@ void reorganize_toplevels(struct yawc_server *sv, struct wlr_output *old_output)
         return;
     }
 
-    struct yawc_output *next_output;
+    struct yawc_output *next_output = nullptr;
 
     wl_list_for_each(next_output, &sv->outputs, link){
         if(old_output && next_output->wlr_output == old_output){
@@ -63,21 +63,24 @@ bool apply_output_config(struct yawc_server *server,
 
     wlr_output_state_set_enabled(&pending, state->enabled);
 
-    if(state->enabled){
-        struct wlr_output_layout_output *l_output = wlr_output_layout_add(output_layout, output, state->x, state->y);
+    if(!only_test){
+        if(state->enabled){
+            struct wlr_output_layout_output *l_output = 
+                ((state->x != INT_MAX && state->y != INT_MAX) ? 
+                    wlr_output_layout_add(output_layout, output, state->x, state->y) : 
+                    wlr_output_layout_add_auto(output_layout, output));
 
-        if (!only_test) {
             struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(server->scene, output);
-            wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
-        }
-    } else{
-        wlr_output_layout_remove(output_layout, output);
 
-        if(!only_test){
+            wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
+
+        } else{
+            wlr_output_layout_remove(output_layout, output);
+
             reorganize_toplevels(server, output);
         }
     }
-
+    
     if(state->mode){
         wlr_output_state_set_mode(&pending, state->mode);
     } else if(state->custom_mode.width || state->custom_mode.height){
