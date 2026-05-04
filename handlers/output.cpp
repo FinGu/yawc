@@ -63,24 +63,6 @@ bool apply_output_config(struct yawc_server *server,
 
     wlr_output_state_set_enabled(&pending, state->enabled);
 
-    if(!only_test){
-        if(state->enabled){
-            struct wlr_output_layout_output *l_output = 
-                ((state->x != INT_MAX && state->y != INT_MAX) ? 
-                    wlr_output_layout_add(output_layout, output, state->x, state->y) : 
-                    wlr_output_layout_add_auto(output_layout, output));
-
-            struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(server->scene, output);
-
-            wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
-
-        } else{
-            wlr_output_layout_remove(output_layout, output);
-
-            reorganize_toplevels(server, output);
-        }
-    }
-    
     if(state->mode){
         wlr_output_state_set_mode(&pending, state->mode);
     } else if(state->custom_mode.width || state->custom_mode.height){
@@ -103,7 +85,27 @@ bool apply_output_config(struct yawc_server *server,
 
     ok = wlr_output_commit_state(output, &pending);
     wlr_output_state_finish(&pending);
-    
+
+    if(!ok){
+        return ok;
+    }
+
+    if(state->enabled){
+        struct wlr_output_layout_output *l_output = 
+            ((state->x != INT_MAX && state->y != INT_MAX) ? 
+                wlr_output_layout_add(output_layout, output, state->x, state->y) : 
+                wlr_output_layout_add_auto(output_layout, output));
+
+        struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(server->scene, output);
+
+        wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
+
+    } else{
+        wlr_output_layout_remove(output_layout, output);
+
+        reorganize_toplevels(server, output);
+    }
+
     return ok;
 }
 
@@ -186,11 +188,13 @@ void handle_output_manager_test(struct wl_listener *listener, void *data){
         if(!apply_output_config(server, head, head->state.output, server->output_layout, true)){
             wlr_log(WLR_ERROR, "Failed to apply config test for output %s", head->state.output->name);
             wlr_output_configuration_v1_send_failed(config);
+            wlr_output_configuration_v1_destroy(config);
             return;
         }
     }
 
     wlr_output_configuration_v1_send_succeeded(config);
+    wlr_output_configuration_v1_destroy(config);
 }
 
 void output_commit(struct wl_listener* listener, void* data){
