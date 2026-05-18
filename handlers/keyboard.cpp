@@ -84,6 +84,10 @@ void handle_keyboard_input(struct wl_listener* listener,
     auto *seat = xkeyboard->server->seat;
 
     if (!handled) {
+		if(server->cur_lock.focused){ //closing the lid causes the lock surface to unfocus for some reason
+            server->set_focus_surface(server->cur_lock.focused);
+        }
+
         wlr_seat_set_keyboard(seat, xkeyboard->wlr_keyboard);
         wlr_seat_keyboard_notify_key(seat, event->time_msec, event->keycode,
             event->state);
