@@ -256,11 +256,14 @@ void render_frame(struct wl_listener* listener, void* data){
 
     state.tearing_page_flip = true;
 
-    if(!wlr_output_test_state(output->wlr_output, &state)){
+    bool result = wlr_output_commit_state(output->wlr_output, &state);
+
+    if(!result){
         state.tearing_page_flip = false;
+        result = wlr_output_commit_state(output->wlr_output, &state);
     }
 
-    if (!wlr_output_commit_state(output->wlr_output, &state)) {
+    if (!result) {
         wlr_log(WLR_DEBUG, "Failed to commit state");
     }
     
