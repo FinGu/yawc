@@ -61,7 +61,9 @@ yawc_server::yawc_server(){
     wlr_log(WLR_DEBUG, "Creating linux dmabuf");
 	if (wlr_renderer_get_texture_formats(this->renderer, WLR_BUFFER_CAP_DMABUF) != NULL) {
 		this->linux_dmabuf_v1 = wlr_linux_dmabuf_v1_create_with_renderer(this->wl_display, 4, this->renderer);
-	} // i think init_wl_display does that for us but i won't bother checking
+    } else{
+        this->linux_dmabuf_v1 = nullptr;
+    }
 
 	if (wlr_renderer_get_drm_fd(this->renderer) >= 0 
             && this->renderer->features.timeline 
@@ -228,7 +230,6 @@ yawc_server_error yawc_server::run() {
     }
 
     create_scene();
-
 
 	if (this->linux_dmabuf_v1) {
 		wlr_scene_set_linux_dmabuf_v1(this->scene, this->linux_dmabuf_v1);
