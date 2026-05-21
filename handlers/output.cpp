@@ -208,7 +208,7 @@ void output_commit(struct wl_listener* listener, void* data){
     int width = 0, height = 0;
     wlr_output_effective_resolution(output->wlr_output, &width, &height);
     
-    float scale = output->wlr_output->scale;
+    float scale = ((output->wlr_output->scale > 0) ? output->wlr_output->scale : 1);
 
     bool geometry_changed = (width != output->last_width) || (height != output->last_height);
     bool scale_changed = (scale != output->last_scale);
