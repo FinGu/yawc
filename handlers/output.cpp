@@ -309,6 +309,31 @@ void destroy_output(struct wl_listener *listener, void *data){
     reorganize_toplevels(server, nullptr);
 }
 
+void handle_output_power_manager_set_mode(struct wl_listener *listener,
+		void *data) {
+	struct wlr_output_power_v1_set_mode_event *event = reinterpret_cast<struct wlr_output_power_v1_set_mode_event*>(data);
+
+    if(!event->output){
+        return;
+    }
+
+    struct wlr_output_state pending;
+
+    wlr_output_state_init(&pending);
+
+	switch (event->mode) {
+	case ZWLR_OUTPUT_POWER_V1_MODE_OFF:
+        wlr_output_state_set_enabled(&pending, false);
+		break;
+	case ZWLR_OUTPUT_POWER_V1_MODE_ON:
+        wlr_output_state_set_enabled(&pending, true);
+		break;
+	}
+
+    wlr_output_commit_state(event->output, &pending);
+    wlr_output_state_finish(&pending);
+}
+
 void yawc_server::handle_new_output(struct wl_listener* listener, void* data){
     struct wlr_output* wlr_output = reinterpret_cast<struct wlr_output*>(data);
 
@@ -403,6 +428,13 @@ yawc_server_error yawc_server::handle_outputs()
     if(!this->xdg_output_manager){
         wlr_log(WLR_DEBUG, "XDG output manager is not available");
         return yawc_server_error::FAILED_TO_START;
+    }
+
+    this->output_power_manager = wlr_output_power_manager_v1_create(this->wl_display);
+
+    if(this->output_power_manager){
+        this->output_power_manager_set_mode.notify = handle_output_power_manager_set_mode; 
+        wl_signal_add(&this->output_power_manager->events.set_mode, &this->output_power_manager_set_mode);
     }
 
     this->output_manager_apply.notify = handle_output_manager_apply;

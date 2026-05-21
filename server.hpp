@@ -223,6 +223,7 @@ public:
     struct wlr_scene_output_layout* scene_layout;
     struct wlr_output_manager_v1 *output_manager;
     struct wlr_xdg_output_manager_v1 *xdg_output_manager;
+    struct wlr_output_power_manager_v1 *output_power_manager;
 
     struct wlr_xdg_shell* xdg_shell;
 
@@ -295,6 +296,7 @@ public:
         on_inhibitor_destroy,
         output_manager_test,
         output_manager_apply,
+        output_power_manager_set_mode,
         backend_destroy,
         new_xdg_toplevel_decoration,
         new_layer_shell_surface,
