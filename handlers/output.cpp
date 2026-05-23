@@ -65,18 +65,21 @@ bool apply_output_config(struct yawc_server *server,
 
     wlr_output_state_set_enabled(&pending, state->enabled);
 
-    if(state->mode){
-        wlr_output_state_set_mode(&pending, state->mode);
-    } else if(state->custom_mode.width || state->custom_mode.height){
-        wlr_output_state_set_custom_mode(&pending, state->custom_mode.width, state->custom_mode.height, state->custom_mode.refresh);
-    }
+    if(state->enabled){
+        if(state->mode){
+            wlr_output_state_set_mode(&pending, state->mode);
+        } else if(state->custom_mode.width || state->custom_mode.height){
+            wlr_output_state_set_custom_mode(&pending, state->custom_mode.width, state->custom_mode.height, state->custom_mode.refresh);
+        }
 
-    if(state->scale > 0){
-        wlr_output_state_set_scale(&pending, state->scale);
-    }
+        if(state->scale > 0){
+            wlr_output_state_set_scale(&pending, state->scale);
+        }
 
-    wlr_output_state_set_adaptive_sync_enabled(&pending, state->adaptive_sync_enabled);
-    wlr_output_state_set_transform(&pending, state->transform);
+        wlr_output_state_set_adaptive_sync_enabled(&pending, state->adaptive_sync_enabled);
+
+        wlr_output_state_set_transform(&pending, state->transform);
+    }
 
     bool ok = wlr_output_test_state(output, &pending);
 
