@@ -73,23 +73,6 @@ bool on_keyboard_key(wm_keyboard_event_t *event){
     return false; //do we want to send the event to (a/the) window? true or false
 }
 
-void maximize_window(wm_toplevel *toplevel){
-    wm_output *output = wm_get_output_of_toplevel(toplevel);
-    wm_box_t output_geometry = wm_get_output_usable_area(output);
-
-    wm_unref_output(output);
-
-    //here we could also remove the boxes created by the resize grip function
-    
-    if(!wm_toplevel_is_csd(toplevel)){ //account for the decoration
-        output_geometry.height -= DECORATION_HEIGHT;
-        output_geometry.y = DECORATION_HEIGHT;
-    }
-
-    wm_set_toplevel_maximized(toplevel, true);
-    wm_set_toplevel_geometry(toplevel, output_geometry);
-}
-
 void on_toplevel_map(wm_toplevel *toplevel){
     wm_focus_toplevel(toplevel);
 
@@ -131,11 +114,9 @@ bool on_pointer_move(wm_pointer_event_t *event){
         hover_cursor = false;
     }
 
-    return true;
-}
+    wm_plugin_log("%i\n", event->global_x);
 
-double get_time_diff(struct timespec end, struct timespec start) {
-    return (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    return true;
 }
 
 void handle_click_gestures(wm_pointer_event_t *event, struct window_data *data, wm_toplevel *toplevel, uint32_t edges) {

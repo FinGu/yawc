@@ -1,5 +1,7 @@
 #include "util.h"
 
+#include "config.h"
+
 void center_window(wm_toplevel *toplevel){
     wm_box_t toplevel_geometry = wm_get_toplevel_geometry(toplevel);
 
@@ -37,3 +39,25 @@ void center_window(wm_toplevel *toplevel){
 
     wm_unref_output(cur_output);
 }
+
+void maximize_window(wm_toplevel *toplevel){
+    wm_output *output = wm_get_output_of_toplevel(toplevel);
+    wm_box_t output_geometry = wm_get_output_usable_area(output);
+
+    wm_unref_output(output);
+
+    //here we could also remove the boxes created by the resize grip function
+    
+    if(!wm_toplevel_is_csd(toplevel)){ //account for the decoration
+        output_geometry.height -= DECORATION_HEIGHT;
+        output_geometry.y = DECORATION_HEIGHT;
+    }
+
+    wm_set_toplevel_maximized(toplevel, true);
+    wm_set_toplevel_geometry(toplevel, output_geometry);
+}
+
+double get_time_diff(struct timespec end, struct timespec start) {
+    return (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+}
+
