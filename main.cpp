@@ -7,7 +7,7 @@
 extern yawc_server *wm_server;
 
 int main(int argc, char **argv){
-    yawc_server server;
+    yawc_server server{};
 
     setenv("WLR_DRM_NO_ATOMIC", "1", 1);
 
@@ -46,7 +46,7 @@ int main(int argc, char **argv){
 
             default:
             case 'h':
-                wlr_log(WLR_INFO, "Help!");
+                std::printf("%s","-w/--window-manager to pass a custom window manager\n-s/--startup to pass a startup command\n-c/--config to pass a custom config\n");
                 return 0;
         } 
     }

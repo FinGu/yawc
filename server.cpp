@@ -154,16 +154,6 @@ yawc_server::~yawc_server()
     }
 }
 
-void on_backend_destroy(struct wl_listener *listener, void *data){
-    wlr_log(WLR_DEBUG, "Destroying backend");
-
-    struct yawc_server* server = wl_container_of(listener, server, backend_destroy);
-
-    wl_list_remove(&server->new_input_listener.link);
-    wl_list_remove(&server->new_output_listener.link);
-    wl_list_remove(&server->backend_destroy.link);
-}
-
 void yawc_server::create_scene()
 {
     wlr_log(WLR_DEBUG, "Creating scene");
@@ -185,38 +175,6 @@ void yawc_server::create_scene()
 
     this->gamma_control_manager = wlr_gamma_control_manager_v1_create(this->wl_display);
     wlr_scene_set_gamma_control_manager_v1(this->scene, this->gamma_control_manager);
-}
-
-yawc_server_error yawc_server::setup_backend(){
-    wlr_log(WLR_DEBUG, "Starting backend");
-
-    this->setup_seat();
-
-    this->new_input_listener.notify = +[](struct wl_listener* listener, void* data) {
-        struct yawc_server* server = wl_container_of(listener, server, new_input_listener);
-        server->handle_new_input(listener, data);
-    };
-    wl_signal_add(&this->backend->events.new_input, &this->new_input_listener);
-
-    this->new_output_listener.notify = +[](struct wl_listener* listener,
-                                            void* data) {
-        yawc_server* server = wl_container_of(listener, server, new_output_listener);
-        server->handle_new_output(listener, data);
-    };
-    wl_signal_add(&this->backend->events.new_output, &this->new_output_listener);
-
-    this->backend_destroy.notify = on_backend_destroy;
-    wl_signal_add(&this->backend->events.destroy, &this->backend_destroy);
-
-    this->setup_xwayland();
-    
-    if (!wlr_backend_start(this->backend)) {
-        wlr_log(WLR_ERROR, "Failed to start backend");
-
-        return yawc_server_error::FAILED_TO_START;
-    }
-
-    return yawc_server_error::OK;
 }
 
 yawc_server_error yawc_server::run() {

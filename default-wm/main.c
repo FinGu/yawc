@@ -449,8 +449,6 @@ void maximize_window(wm_toplevel *toplevel){
 }
 
 void on_toplevel_map(wm_toplevel *toplevel){
-    wm_plugin_log("Mapping toplevel");
-
     wm_focus_toplevel(toplevel);
 
     create_decoration(toplevel, wm_get_toplevel_geometry(toplevel));

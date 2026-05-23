@@ -20,6 +20,7 @@ extern "C" {
 #include <wlr/backend/multi.h>
 #include <wlr/backend/session.h>
 #include <wlr/backend/libinput.h>
+#include <wlr/backend/headless.h>
 #include <wlr/backend/drm.h>
 #include <wlr/render/allocator.h>
 #include <wlr/render/wlr_renderer.h>
@@ -74,7 +75,8 @@ extern "C" {
 enum yawc_server_error { OK = 0,
     FAILED_TO_START,
     FAILED_TO_CREATE_SOCKET,
-    IS_NOT_GLES2
+    IS_NOT_GLES2,
+    COULDNT_CREATE_HEADLESS,
 };
 
 struct yawc_pointer {
@@ -111,7 +113,10 @@ struct yawc_session_lock {
 struct yawc_output {
 public:
     struct wlr_output* wlr_output;
+    struct wlr_scene_output *scene_output;
+
     struct yawc_server* server;
+
     struct timespec last_frame;
 
     int last_width, last_height;
@@ -208,7 +213,7 @@ public:
     struct wl_event_loop* wl_event_loop;
 
     struct wlr_session* session;
-    struct wlr_backend* backend;
+    struct wlr_backend *backend, *headless_backend;
     struct wlr_renderer* renderer;
 
     struct wlr_allocator* allocator, *shm_allocator;
@@ -350,6 +355,10 @@ public:
 
     yawc_server_error setup_backend();
 
+    yawc_server_error setup_headless_backend();
+
+    yawc_output *create_output(struct wlr_output *wlr_output);
+
     void handle_new_output(struct wl_listener*, void*);
 
     void new_xdg_toplevel(struct wl_listener*, void*);
@@ -388,4 +397,6 @@ public:
         struct wlr_scene_tree *screenlock;
 	} layers;
     
+    //we actually need this
+    struct yawc_output *fallback_output;
 };

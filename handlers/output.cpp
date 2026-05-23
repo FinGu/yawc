@@ -6,10 +6,7 @@
 #include "../utils.hpp"
 
 void reorganize_toplevels(struct yawc_server *sv, struct wlr_output *old_output){
-    if(wl_list_empty(&sv->outputs)){ //oh well
-        return;
-    }
-
+    bool found = false;
     struct yawc_output *next_output = nullptr;
 
     wl_list_for_each(next_output, &sv->outputs, link){
@@ -21,12 +18,13 @@ void reorganize_toplevels(struct yawc_server *sv, struct wlr_output *old_output)
             continue;
         } //next available output
 
+        found = true;
         break;
     }
 
     int dest_x = 0, dest_y = 0;
 
-    if (next_output) {
+    if(found){
         struct wlr_box next_box;
         wlr_output_layout_get_box(sv->output_layout, next_output->wlr_output, &next_box);
         dest_x = next_box.x;
@@ -55,6 +53,10 @@ bool apply_output_config(struct yawc_server *server,
         struct wlr_output *output, 
         struct wlr_output_layout *output_layout,
         bool only_test){
+    if(output == server->fallback_output->wlr_output){
+        wlr_log(WLR_INFO, "Tried to apply a config to the fallback output, skipped");
+        return true;
+    }
 
     struct wlr_output_head_v1_state *state = &head->state;
     struct wlr_output_state pending;
@@ -91,15 +93,11 @@ bool apply_output_config(struct yawc_server *server,
     }
 
     if(state->enabled){
-        struct wlr_output_layout_output *l_output = 
-            ((state->x != INT_MAX && state->y != INT_MAX) ? 
-                wlr_output_layout_add(output_layout, output, state->x, state->y) : 
-                wlr_output_layout_add_auto(output_layout, output));
-
-        struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(server->scene, output);
-
-        wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
-
+        if(state->x != INT_MAX && state->y && INT_MAX){
+            wlr_output_layout_add(output_layout, output, state->x, state->y); 
+        } else{
+            wlr_output_layout_add_auto(output_layout, output);
+        }
     } else{
         wlr_output_layout_remove(output_layout, output);
 
@@ -120,12 +118,12 @@ void update_output_manager_config(struct yawc_server *server) {
 
     struct yawc_output *output;
     
-    if(wl_list_empty(&server->outputs)){
-        wlr_output_configuration_v1_destroy(cfg);
-        return;
-    }
-
+    //outputs are never empty with the fallback
     wl_list_for_each(output, &server->outputs, link) {
+		if (output == server->fallback_output) {
+			continue;
+		}
+
         struct wlr_output_configuration_head_v1 *head =
             wlr_output_configuration_head_v1_create(cfg, output->wlr_output);
 
@@ -235,9 +233,7 @@ void output_commit(struct wl_listener* listener, void* data){
 
 void render_frame(struct wl_listener* listener, void* data){
     struct yawc_output* output = wl_container_of(listener, output, frame);
-    struct wlr_scene* scene = output->server->scene;
-
-    struct wlr_scene_output* scene_output = wlr_scene_get_scene_output(scene, output->wlr_output);
+    auto *scene_output = output->scene_output;
 
     if(!wlr_scene_output_needs_frame(scene_output)){
         struct timespec now;
@@ -294,6 +290,9 @@ void destroy_output(struct wl_listener *listener, void *data){
     wl_list_remove(&output->destroy.link);
     wl_list_remove(&output->link);
 
+	wlr_scene_output_destroy(output->scene_output);
+	output->scene_output = NULL;
+
     struct yawc_layer_surface *layer, *tmpl;
 
     wl_list_for_each_safe(layer, tmpl, &output->layer_surfaces, link){
@@ -334,37 +333,61 @@ void handle_output_power_manager_set_mode(struct wl_listener *listener,
     wlr_output_state_finish(&pending);
 }
 
-void yawc_server::handle_new_output(struct wl_listener* listener, void* data){
-    struct wlr_output* wlr_output = reinterpret_cast<struct wlr_output*>(data);
-
-    wlr_log(WLR_DEBUG, "Initiating render for output");
-    wlr_output_init_render(wlr_output, this->allocator, this->renderer);
-
+bool setup_new_output_state(struct wlr_output *output){
     struct wlr_output_state state;
 
     wlr_output_state_init(&state);
     wlr_output_state_set_enabled(&state, true);
 
-    struct wlr_output_mode* mode = wlr_output_preferred_mode(wlr_output);
+    struct wlr_output_mode* mode = wlr_output_preferred_mode(output);
     if (mode) {
         wlr_output_state_set_mode(&state, mode);
     }
 
-    state.tearing_page_flip = true;
-    
-    if(!wlr_output_test_state(wlr_output, &state)){
-        state.tearing_page_flip = false;
-        wlr_log(WLR_DEBUG, "tearing couldn't be applied. %s", wlr_output->name);
-    }
+    wlr_log(WLR_DEBUG, "Setting output mode");
 
-    wlr_output_commit_state(wlr_output, &state);
+    bool ret = wlr_output_commit_state(output, &state);
     wlr_output_state_finish(&state);
 
-    wlr_log(WLR_DEBUG, "Set output mode");
+    return ret;
+}
 
-    struct yawc_output* output = new yawc_output;
-    output->wlr_output = wlr_output;
-    output->server = this;
+void yawc_server::handle_new_output(struct wl_listener* listener, void* data){
+    struct wlr_output* wlr_output = reinterpret_cast<struct wlr_output*>(data);
+
+	if (wlr_output == this->fallback_output->wlr_output) {
+        wlr_log(WLR_DEBUG, "Not handling the fallback output");
+		return;
+	}
+
+    wlr_log(WLR_DEBUG, "Initiating render for output");
+
+    if(!wlr_output_init_render(wlr_output, this->allocator, this->renderer)){
+        wlr_log(WLR_ERROR, "Failed to initiate render for output");
+        return;
+    }
+
+    if(!setup_new_output_state(wlr_output)){
+        wlr_log(WLR_ERROR, "Failed to set output mode");
+        return;
+    }
+
+    //doesn't make much sense to create the scene output here but the greatest do, we follow
+    struct wlr_scene_output* scene_output = wlr_scene_output_create(this->scene, wlr_output);
+
+    if(!scene_output){
+        wlr_log(WLR_ERROR, "Failed to create scene output for an output");
+        return;
+    }
+
+    struct yawc_output *output = create_output(wlr_output);
+    if(!output){
+        wlr_log(WLR_ERROR, "Failed to create an output");
+        wlr_scene_output_destroy(scene_output);
+        return;
+    }
+
+    output->scene_output = scene_output;
 
     output->commit.notify = output_commit; 
     wl_signal_add(&wlr_output->events.commit, &output->commit);
@@ -378,30 +401,16 @@ void yawc_server::handle_new_output(struct wl_listener* listener, void* data){
     output->destroy.notify = destroy_output;
     wl_signal_add(&wlr_output->events.destroy, &output->destroy);
 
-    wlr_output->data = output;
-
-    wl_list_insert(&this->outputs, &output->link);
-    
-    wl_list_init(&output->layer_surfaces);
-
-    struct wlr_output_layout_output* l_output = wlr_output_layout_add_auto(this->output_layout, wlr_output);
-    struct wlr_scene_output* scene_output = wlr_scene_output_create(this->scene, wlr_output);
-
-    update_output_manager_config(this);
-
-    int width, height;
-    wlr_output_effective_resolution(wlr_output, &width, &height);
-
-    output->last_width = width;
-    output->last_height = height;
-    output->last_scale = wlr_output->scale;
-
     if(this->cur_lock.lock){
         session_lock_output_create(this, output);
     }
 
-    wlr_scene_output_layout_add_output(this->scene_layout, l_output,
+    auto *output_layout_output = wlr_output_layout_add_auto(this->output_layout, wlr_output);
+
+    wlr_scene_output_layout_add_output(this->scene_layout, output_layout_output,
         scene_output);
+
+    update_output_manager_config(this);
 }
 
 void on_output_manager_destroy(struct wl_listener *listener, void *data){

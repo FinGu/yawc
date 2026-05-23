@@ -7,7 +7,7 @@ project('yawc', ['c', 'cpp'],
   ]
 )
 
-srcs = files('main.cpp', 'server.cpp', 'toplevel.cpp', 'config.cpp', 'utils.cpp', 'window_ops.cpp', 'scene_descriptor.cpp', 'handlers/xdg_shell.cpp', 'handlers/layer_shell.cpp', 'handlers/cursor.cpp', 'handlers/cursor_constraint.cpp', 'handlers/seat.cpp', 'handlers/drag.cpp', 'handlers/keyboard.cpp', 'handlers/idle.cpp', 'handlers/output.cpp', 'handlers/decoration.cpp', 'handlers/xwayland.cpp', 'handlers/screenshare.cpp', 'handlers/lock.cpp', 'wm_api.cpp', 'wm_defs.cpp', 'shm_alloc/shm.cpp', 'shm_alloc/pixel_format.cpp', 'extra/hyprland-global-shortcuts-v1.c', 'handlers/shortcut.cpp', 'keybinds.cpp', 'wm.cpp')
+srcs = files('main.cpp', 'backend.cpp', 'server.cpp', 'toplevel.cpp', 'config.cpp', 'utils.cpp', 'window_ops.cpp', 'scene_descriptor.cpp', 'handlers/xdg_shell.cpp', 'handlers/layer_shell.cpp', 'handlers/cursor.cpp', 'handlers/cursor_constraint.cpp', 'handlers/seat.cpp', 'handlers/drag.cpp', 'handlers/keyboard.cpp', 'handlers/idle.cpp', 'handlers/output.cpp', 'handlers/decoration.cpp', 'handlers/xwayland.cpp', 'handlers/screenshare.cpp', 'handlers/lock.cpp', 'wm_api.cpp', 'wm_defs.cpp', 'shm_alloc/shm.cpp', 'shm_alloc/pixel_format.cpp', 'extra/hyprland-global-shortcuts-v1.c', 'handlers/shortcut.cpp', 'keybinds.cpp', 'wm.cpp')
 
 subdir('protocols')
 subdir('default-wm')

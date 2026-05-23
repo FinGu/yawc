@@ -294,7 +294,8 @@ void handle_new_layer_shell_surface(struct wl_listener *listener, void *data){
         layer_surface->output = wlr_output;
     }
 
-    if(!wlr_output || !wlr_output->enabled){
+    if(!wlr_output || !wlr_output->enabled || wlr_output == server->fallback_output->wlr_output){
+        wlr_log(WLR_ERROR, "No output available to assign to the layer shell");
         return;
     }
     
