@@ -93,11 +93,18 @@ bool apply_output_config(struct yawc_server *server,
     }
 
     if(state->enabled){
-        if(state->x != INT_MAX && state->y && INT_MAX){
-            wlr_output_layout_add(output_layout, output, state->x, state->y); 
+        struct wlr_output_layout_output *olo;
+
+        if(state->x != INT_MAX && state->y != INT_MAX){
+            olo = wlr_output_layout_add(output_layout, output, state->x, state->y); 
         } else{
-            wlr_output_layout_add_auto(output_layout, output);
+            olo = wlr_output_layout_add_auto(output_layout, output);
         }
+
+        struct yawc_output *youtput = reinterpret_cast<struct yawc_output*>(output->data);
+
+        wlr_scene_output_layout_add_output(server->scene_layout, olo,
+            youtput->scene_output);
     } else{
         wlr_output_layout_remove(output_layout, output);
 
