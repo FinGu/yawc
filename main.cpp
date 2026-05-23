@@ -1,14 +1,11 @@
 #include <getopt.h>
 #include <dlfcn.h>
-#include <signal.h>
 
 #include "server.hpp"
 
 extern yawc_server *wm_server;
 
 int main(int argc, char **argv){
-    yawc_server server{};
-
     setenv("WLR_DRM_NO_ATOMIC", "1", 1);
 
 #ifdef DEBUG
@@ -50,6 +47,8 @@ int main(int argc, char **argv){
                 return 0;
         } 
     }
+
+    yawc_server server{};
 
     server.wm = {0};
 
