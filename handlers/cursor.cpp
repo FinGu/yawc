@@ -115,8 +115,10 @@ void handle_cursor_button(struct wl_listener* listener,
         return;
     }
     
+    yawc_mouse_operation cur_mouse_op = server->current_mouse_operation;
+
     if(event->state == WL_POINTER_BUTTON_STATE_RELEASED){
-        if(server->current_mouse_operation != yawc_mouse_operation::NOTHING){
+        if(cur_mouse_op != yawc_mouse_operation::NOTHING){
             wlr_cursor_set_xcursor(server->cursor, server->cursor_mgr, "default");
         }
 
@@ -124,7 +126,7 @@ void handle_cursor_button(struct wl_listener* listener,
     }
     
     if(server->wm.handle && server->wm.callbacks.on_pointer_button){
-        wm_pointer_event_t out_event = wm_create_pointer_event(server, event->button, utils::pointer_pressed(event)); 
+        wm_pointer_event_t out_event = wm_create_pointer_event(server, cur_mouse_op, event->button, utils::pointer_pressed(event)); 
 
         server->wm.callbacks.on_pointer_button(&out_event);
 
@@ -193,7 +195,7 @@ void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data
     bool handled = false;
 
     if(this->wm.handle && this->wm.callbacks.on_pointer_move){
-        auto pevent = wm_create_pointer_event(this, 0, 0);
+        auto pevent = wm_create_pointer_event(this, this->current_mouse_operation, 0, 0);
 
         handled = !this->wm.callbacks.on_pointer_move(&pevent);
             

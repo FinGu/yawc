@@ -7,6 +7,7 @@
 #include "config.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 static struct task_switcher_data task_switcher = {.initialized = false};
 
@@ -15,9 +16,9 @@ void on_toplevel_geometry(wm_toplevel *toplevel, wm_box_t last_geo, wm_box_t new
         return;
     }
     
-    wm_plugin_log("On toplevel new geometry (resize), last_geo: %i %i %i %i, new_geo: %i %i %i %i", 
+    /*wm_plugin_log("On toplevel new geometry (resize), last_geo: %i %i %i %i, new_geo: %i %i %i %i", 
             last_geo.x, last_geo.y, last_geo.width, last_geo.height, 
-            new_box.x, new_box.y, new_box.width, new_box.height);
+            new_box.x, new_box.y, new_box.width, new_box.height);*/
 
     wm_output *toplevel_output = wm_get_output_of_toplevel(toplevel);
 
@@ -114,12 +115,10 @@ bool on_pointer_move(wm_pointer_event_t *event){
         hover_cursor = false;
     }
 
-    wm_plugin_log("%i\n", event->global_x);
-
     return true;
 }
 
-void handle_click_gestures(wm_pointer_event_t *event, struct window_data *data, wm_toplevel *toplevel, uint32_t edges) {
+void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data, wm_toplevel *toplevel, uint32_t edges) {
     if(event->button != BTN_LEFT) {
         return;
     }
@@ -143,32 +142,81 @@ void handle_click_gestures(wm_pointer_event_t *event, struct window_data *data, 
         
     //check for double clicks within a time frame
     if(time_diff < DOUBLE_CLICK_THRESHOLD && dx < COORDS_THRESHOLD && dy < COORDS_THRESHOLD) {
-        maximize_window(toplevel);
-            
         data->last_left_click.tv_sec = 0; 
-        wm_cancel_window_op();
-    } else {
-        if (wm_toplevel_is_maximized(toplevel)) {
-            wm_box_t max_geo = wm_get_toplevel_geometry(toplevel);
-            wm_box_t restore_geo = wm_restore_toplevel_geometry(toplevel);
 
-            double ratio_x = (event->global_x - max_geo.x) / (double)max_geo.width;
-            //double offset_y = event->global_y - max_geo.y;
-    
-            restore_geo.x = event->global_x - (ratio_x * restore_geo.width);
-            restore_geo.y = event->global_y + (DECORATION_HEIGHT/2.);
-
-            wm_set_toplevel_maximized(toplevel, false);
-
-            wm_set_toplevel_geometry(toplevel, restore_geo);
+        if(wm_toplevel_is_maximized(toplevel)){
+            restore_maximized_window(toplevel, event->global_x, event->global_y);
+            wm_begin_move(toplevel);
+        } else{
+            maximize_window(toplevel);
+            wm_cancel_window_op();
         }
-
+    } else {
         data->last_left_click = now;
         data->last_click_x = (int)event->global_x;
         data->last_click_y = (int)event->global_y;
 
-        wm_begin_move(toplevel);
+        if(!wm_toplevel_is_maximized(toplevel)){
+            wm_begin_move(toplevel);
+        }
     } 
+}
+
+void handle_border_gesture(wm_pointer_event_t *event, wm_toplevel *cur_toplevel){
+    if(event->button != BTN_LEFT) {
+        return;
+    }
+
+    if(event->pressed){
+        return;
+    }
+
+    if(event->op != WM_MOVING){
+        return;
+    }
+
+    wm_output *output = wm_get_output_of_toplevel(cur_toplevel);
+
+    if(!output){
+        return;
+    }
+
+    wm_box_t output_geo = wm_get_output_geometry(output);
+
+    wm_unref_output(output);
+
+    bool is_left   = fabs(output_geo.x - event->global_x) < COORDS_THRESHOLD;
+    bool is_right  = fabs((output_geo.x + output_geo.width - 1) - event->global_x) < COORDS_THRESHOLD;
+    bool is_top    = fabs(output_geo.y - event->global_y) < COORDS_THRESHOLD;
+    bool is_bottom = fabs((output_geo.y + output_geo.height - 1) - event->global_y) < COORDS_THRESHOLD;
+
+    if (!is_left && !is_right && !is_top && !is_bottom) {
+        return;
+    }
+
+    wm_box_t new_geo = output_geo;
+    
+    if(!wm_toplevel_is_csd(cur_toplevel)){
+        new_geo.y += DECORATION_HEIGHT;
+        new_geo.height -= DECORATION_HEIGHT;
+    }
+
+    if (is_left) {
+        new_geo.width /= 2;
+    } else if (is_right) {
+        new_geo.width /= 2;
+        new_geo.x += new_geo.width; 
+    }
+
+    if (is_top) {
+        new_geo.height /= 2;
+    } else if (is_bottom) {
+        new_geo.height /= 2;
+        new_geo.y += new_geo.height;
+    }
+
+    wm_set_toplevel_maximized(cur_toplevel, true);
+    wm_set_toplevel_geometry(cur_toplevel, new_geo);
 }
 
 bool on_pointer_button(wm_pointer_event_t *event){
@@ -193,6 +241,8 @@ bool on_pointer_button(wm_pointer_event_t *event){
         } else{
             pass_event_back = false;
         }
+
+        handle_border_gesture(event, toplevel);
         
         goto free_toplevel;
     }
@@ -219,7 +269,8 @@ bool on_pointer_button(wm_pointer_event_t *event){
 
         wm_render_fn_to_buffer(buffer, draw_decoration, data);
 
-        handle_click_gestures(event, data, toplevel, edges);
+        handle_pressed_gestures(event, data, toplevel, edges);
+        handle_border_gesture(event, toplevel);
 
         pass_event_back = false;
 
@@ -230,7 +281,7 @@ bool on_pointer_button(wm_pointer_event_t *event){
         
         data = wm_get_toplevel_state(toplevel);
 
-        handle_click_gestures(event, data, toplevel, edges);
+        handle_pressed_gestures(event, data, toplevel, edges);
 
         pass_event_back = false;
         goto free_toplevel;

@@ -81,6 +81,12 @@ typedef enum {
     WM_REQUEST_CLOSE
 } wm_toplevel_request_type_t;
 
+typedef enum { 
+    WM_NONE = 0,
+    WM_MOVING,
+    WM_RESIZING 
+} wm_mouse_operation;
+
 typedef struct {
     wm_toplevel_request_type_t type;
     wm_toplevel *toplevel;
@@ -106,6 +112,8 @@ typedef struct {
 typedef struct {
     double global_x; 
     double global_y;
+
+    wm_mouse_operation op;
 
     wm_button_t button; 
     bool pressed;

@@ -6,7 +6,7 @@
 extern yawc_server *wm_server;
 
 int main(int argc, char **argv){
-    setenv("WLR_DRM_NO_ATOMIC", "1", 1);
+    //setenv("WLR_DRM_NO_ATOMIC", "1", 1);
 
 #ifdef DEBUG
     wlr_log_init(WLR_DEBUG, NULL);

@@ -25,7 +25,7 @@ typedef struct wm_buffer{
 
 wm_keyboard_event_t wm_create_empty_keyboard_event();
 
-wm_pointer_event_t wm_create_pointer_event(yawc_server *, uint32_t button, bool pressed);
+wm_pointer_event_t wm_create_pointer_event(yawc_server *, yawc_mouse_operation, uint32_t button, bool pressed);
 wm_toplevel_request_event_t wm_create_toplevel_request_event(wm_toplevel *toplevel, wm_toplevel_request_type_t type, void *data);
 wm_toplevel *wm_create_toplevel(yawc_toplevel *toplevel);
 

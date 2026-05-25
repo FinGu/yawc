@@ -12,7 +12,7 @@ wm_toplevel *wm_create_toplevel(yawc_toplevel *backer){
         return tp;
 }
 
-wm_pointer_event_t wm_create_pointer_event(yawc_server *sv, uint32_t button, bool pressed){
+wm_pointer_event_t wm_create_pointer_event(yawc_server *sv, yawc_mouse_operation op, uint32_t button, bool pressed){
         auto evt {wm_pointer_event_t{}};
 
         evt.global_x = sv->cursor->x;
@@ -20,6 +20,8 @@ wm_pointer_event_t wm_create_pointer_event(yawc_server *sv, uint32_t button, boo
 
         evt.button = button;
         evt.pressed = pressed;
+
+        evt.op = (wm_mouse_operation)op;
 
         return evt;
 }
