@@ -144,21 +144,19 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
     if(time_diff < DOUBLE_CLICK_THRESHOLD && dx < COORDS_THRESHOLD && dy < COORDS_THRESHOLD) {
         data->last_left_click.tv_sec = 0; 
 
-        if(wm_toplevel_is_maximized(toplevel)){
-            restore_maximized_window(toplevel, event->global_x, event->global_y);
-            wm_begin_move(toplevel);
-        } else{
-            maximize_window(toplevel);
-            wm_cancel_window_op();
-        }
+        maximize_window(toplevel);
+
+        wm_cancel_window_op();
     } else {
         data->last_left_click = now;
         data->last_click_x = (int)event->global_x;
         data->last_click_y = (int)event->global_y;
 
-        if(!wm_toplevel_is_maximized(toplevel)){
-            wm_begin_move(toplevel);
+        if(wm_toplevel_is_maximized(toplevel)){
+            restore_maximized_window(toplevel, event->global_x, event->global_y);
         }
+
+        wm_begin_move(toplevel);
     } 
 }
 
