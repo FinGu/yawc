@@ -27,6 +27,12 @@ bool handle_default_keybinds(struct yawc_server* server, xkb_keysym_t sym, uint3
     return true;
 }
 
+void pass_keyboard_event_to_seat(struct wlr_seat *seat, struct yawc_keyboard *keyboard, struct wlr_keyboard_key_event* event){
+    wlr_seat_set_keyboard(seat, keyboard->wlr_keyboard);
+    wlr_seat_keyboard_notify_key(seat, event->time_msec, event->keycode,
+        event->state);
+}
+
 void handle_keyboard_input(struct wl_listener* listener,
         void* data){
 
@@ -54,6 +60,18 @@ void handle_keyboard_input(struct wl_listener* listener,
         return; 
     }
 
+    auto *seat = server->seat;
+
+	if(server->cur_lock.focused){ 
+        //closing the lid causes the lock surface to unfocus for some reason, also, we should never pass events to the window manager if we're locked
+        //server->set_focus_surface(server->cur_lock.focused);
+
+        pass_keyboard_event_to_seat(seat, xkeyboard, event);
+
+        return;
+    }
+
+
     if(server->keybind_manager->needed()){
         server->keybind_manager->store(sym, modifiers, event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
 
@@ -68,7 +86,7 @@ void handle_keyboard_input(struct wl_listener* listener,
         }
     }
 
-    if(xkeyboard->server->wm.handle && xkeyboard->server->wm.callbacks.on_key){
+    if(server->wm.handle && server->wm.callbacks.on_key){
         wm_keyboard_event_t kevent = wm_create_empty_keyboard_event();
 
         kevent.keysym = sym;
@@ -76,21 +94,13 @@ void handle_keyboard_input(struct wl_listener* listener,
         kevent.pressed = event->state == WL_KEYBOARD_KEY_STATE_PRESSED;
         kevent.raw_code = keycode;
 
-        handled = !xkeyboard->server->wm.callbacks.on_key(&kevent);
+        handled = !server->wm.callbacks.on_key(&kevent);
 
         wm_destroy_keyboard_event(&kevent);
     }
 
-    auto *seat = xkeyboard->server->seat;
-
     if (!handled) {
-		if(server->cur_lock.focused){ //closing the lid causes the lock surface to unfocus for some reason
-            server->set_focus_surface(server->cur_lock.focused);
-        }
-
-        wlr_seat_set_keyboard(seat, xkeyboard->wlr_keyboard);
-        wlr_seat_keyboard_notify_key(seat, event->time_msec, event->keycode,
-            event->state);
+        pass_keyboard_event_to_seat(seat, xkeyboard, event);
     }
 }
 

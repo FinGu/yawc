@@ -33,6 +33,7 @@ void lock_output_reconfigure(struct yawc_session_lock_output *output) {
 	int width = output->output->last_width;
 	int height = output->output->last_height;
 
+	wlr_log(WLR_ERROR, "Ok so width: %i, height: %i", width, height);
 	wlr_scene_rect_set_size(output->background, width, height);
 
 	if (output->surface) {
