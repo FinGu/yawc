@@ -70,7 +70,7 @@ void on_decoration_manager_destroy(struct wl_listener *listener, void *data){
 }
 
 void yawc_server::create_decoration_manager(){
-    this->decoration_manager = wlr_xdg_decoration_manager_v1_create(this->wl_display);
+    this->decoration_manager = wlr_xdg_decoration_manager_v1_create(this->wl_display, 2);
 
     this->new_xdg_toplevel_decoration.notify = new_toplevel_decoration;
     wl_signal_add(&this->decoration_manager->events.new_toplevel_decoration, &this->new_xdg_toplevel_decoration);
