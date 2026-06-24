@@ -16,15 +16,13 @@ bool handle_default_keybinds(struct yawc_server* server, xkb_keysym_t sym, uint3
 		return true;
 	}
 
-    switch (sym) {
-    case XKB_KEY_Escape:
+    if(modifiers & WLR_MODIFIER_CTRL && sym == XKB_KEY_Escape){
         wl_display_terminate(server->wl_display);
-        break;
-    default:
-        return false;
-    }
 
-    return true;
+        return true;
+    }
+    
+    return false;
 }
 
 void pass_keyboard_event_to_seat(struct wlr_seat *seat, struct yawc_keyboard *keyboard, struct wlr_keyboard_key_event* event){
