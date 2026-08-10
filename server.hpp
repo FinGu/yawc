@@ -60,6 +60,7 @@ extern "C" {
 #include <wlr/types/wlr_session_lock_v1.h>
 #include <wlr/types/wlr_cursor_shape_v1.h>
 #include <wlr/types/wlr_presentation_time.h>
+#include <wlr/types/wlr_content_type_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_xdg_foreign_registry.h>
 #include <wlr/types/wlr_xdg_foreign_v1.h>
@@ -77,6 +78,7 @@ enum yawc_server_error { OK = 0,
     FAILED_TO_CREATE_SOCKET,
     IS_NOT_GLES2,
     COULDNT_CREATE_HEADLESS,
+    COULDNT_CREATE_SCENE
 };
 
 struct yawc_pointer {
@@ -246,6 +248,7 @@ public:
     struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
     struct wlr_pointer_constraint_v1 *active_constraint = nullptr;
 
+    struct wlr_content_type_manager_v1 *content_type_manager;
     struct wlr_data_device_manager *data_device_manager;
     struct wlr_primary_selection_v1_device_manager *primary_selection_manager;
 
@@ -332,7 +335,7 @@ public:
 
     yawc_server_error handle_outputs();
 
-    void create_scene();
+    bool create_scene();
     void create_xdg_shell();
     void create_cursor();
     void create_pointer_constraint();

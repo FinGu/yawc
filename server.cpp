@@ -154,7 +154,7 @@ yawc_server::~yawc_server()
     }
 }
 
-void yawc_server::create_scene()
+bool yawc_server::create_scene()
 {
     wlr_log(WLR_DEBUG, "Creating scene");
 
@@ -170,11 +170,31 @@ void yawc_server::create_scene()
     this->layers.overlay = wlr_scene_tree_create(&this->scene->tree);
     this->layers.screenlock = wlr_scene_tree_create(&this->scene->tree);
 
-    wlr_viewporter_create(this->wl_display);
-	wlr_single_pixel_buffer_manager_v1_create(this->wl_display);
+    if(!wlr_viewporter_create(this->wl_display)){
+        wlr_log(WLR_ERROR, "Failed to create viewporter");
+        return false;
+    }
+
+	if(!wlr_single_pixel_buffer_manager_v1_create(this->wl_display)){
+        wlr_log(WLR_ERROR, "Failed to create single pixel buffer manager");
+        return false;
+    }
+
+    this->content_type_manager = wlr_content_type_manager_v1_create(this->wl_display, 1);
+    if(!this->content_type_manager){
+        wlr_log(WLR_ERROR, "Failed to create the content type manager");
+        return false;
+    }
 
     this->gamma_control_manager = wlr_gamma_control_manager_v1_create(this->wl_display);
+    if(!this->gamma_control_manager){
+        wlr_log(WLR_ERROR, "Failed to create the gamma control manager");
+        return false;
+    }
+
     wlr_scene_set_gamma_control_manager_v1(this->scene, this->gamma_control_manager);
+
+    return true;
 }
 
 yawc_server_error yawc_server::run() {
@@ -187,7 +207,11 @@ yawc_server_error yawc_server::run() {
         return err;
     }
 
-    create_scene();
+    if(!create_scene()){
+        err = COULDNT_CREATE_SCENE;
+        wlr_log(WLR_ERROR, "Failed to create scene related objects");
+        return err;
+    }
 
 	if (this->linux_dmabuf_v1) {
 		wlr_scene_set_linux_dmabuf_v1(this->scene, this->linux_dmabuf_v1);

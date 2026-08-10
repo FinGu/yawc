@@ -272,7 +272,7 @@ void render_frame(struct wl_listener* listener, void* data){
     if (!result) {
         wlr_log(WLR_DEBUG, "Failed to commit state");
     }
-    
+
     wlr_output_state_finish(&state);
     
     struct timespec now;
