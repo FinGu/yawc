@@ -56,7 +56,7 @@ wm_grip_visual grip_callback(wm_toplevel *toplevel,
 }
 
 wm_buffer *create_decoration(wm_toplevel *toplevel, wm_box_t geometry) {
-    if(wm_toplevel_is_csd(toplevel)){ //is client side decoration
+    if(wm_toplevel_is_csd(toplevel) || wm_toplevel_is_fullscreen(toplevel)){ //is client side decoration
         return NULL;
     }
 
