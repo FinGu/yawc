@@ -103,8 +103,6 @@ void handle_cursor_button(struct wl_listener* listener,
 
     wlr_seat_pointer_notify_button(server->seat, event->time_msec, event->button, event->state);
 
-    wlr_seat_pointer_notify_frame(server->seat);
-
     wlr_layer_surface_v1 *lsurface = 
         utils::toplevel_layer_surface_from_surface(input_on_surface.surface);
 
@@ -212,7 +210,6 @@ void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data
         wlr_seat_pointer_notify_enter(this->seat, input_on_surface.surface, input_on_surface.x, input_on_surface.y);
         wlr_seat_pointer_notify_motion(this->seat, time, input_on_surface.x,
             input_on_surface.y);
-        wlr_seat_pointer_notify_frame(this->seat);
     } else {
         wlr_seat_pointer_clear_focus(this->seat);
         wlr_cursor_set_xcursor(this->cursor, this->cursor_mgr, "default");
