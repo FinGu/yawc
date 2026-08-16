@@ -59,19 +59,18 @@ void handle_keyboard_input(struct wl_listener* listener,
     }
 
     auto *seat = server->seat;
-
-	if(server->cur_lock.focused){ 
-       //closing the lid causes the lock surface to unfocus for some reason, also, we should never pass events to the window manager if we're locked
-       //server->set_focus_surface(server->cur_lock.focused);
-       if (seat->keyboard_state.focused_surface !=
+    if (server->cur_lock.lock) {
+		//closing the lid causes the lock surface to unfocus for some reason, also, we should never pass events to the window manager if we're locked
+        //server->set_focus_surface(server->cur_lock.focused);
+        if (server->cur_lock.focused &&
+               seat->keyboard_state.focused_surface !=
                    server->cur_lock.focused) {
-           server->set_focus_surface(server->cur_lock.focused);
-       }
-        pass_keyboard_event_to_seat(seat, xkeyboard, event);
+            server->set_focus_surface(server->cur_lock.focused);
+        }
 
+        pass_keyboard_event_to_seat(seat, xkeyboard, event);
         return;
     }
-
 
     if(server->keybind_manager->needed()){
         server->keybind_manager->store(sym, modifiers, event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
