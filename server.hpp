@@ -230,7 +230,7 @@ public:
     struct wlr_scene_output_layout* scene_layout;
     struct wlr_output_manager_v1 *output_manager;
     struct wlr_xdg_output_manager_v1 *xdg_output_manager;
-    struct wlr_output_power_manager_v1 *output_power_manager;
+    struct wlr_output_power_manager_v1 *output_power_manager = nullptr;
 
     struct wlr_xdg_shell* xdg_shell;
 

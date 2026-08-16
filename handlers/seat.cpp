@@ -63,8 +63,6 @@ void handle_seat_destroy(struct wl_listener *listener, void *data){
 	}
 
 	wl_list_remove(&server->seat_destroy.link);
-
-	wlr_seat_destroy(server->seat);
 }
 
 void yawc_server::setup_seat()
@@ -105,6 +103,10 @@ void yawc_server::set_focus_surface(struct wlr_surface *surface) {
 }
 
 void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
+    if (this->cur_lock.lock && layer) {
+        return;
+    }
+
 	struct wlr_surface *prev_surface = this->seat->keyboard_state.focused_surface;
     if (prev_surface) {
         struct wlr_xdg_toplevel* prev_toplevel = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);

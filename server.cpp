@@ -110,8 +110,18 @@ yawc_server::~yawc_server()
         wl_event_source_remove(this->reload_event);
     }
 
+    if (this->output_power_manager) {
+        wl_list_remove(&this->output_power_manager_set_mode.link);
+    }
+
     if(this->wl_display){
         wl_display_destroy_clients(this->wl_display);
+    }
+
+    if (this->backend) {
+       struct wlr_backend *backend = this->backend;
+       this->backend = nullptr;
+       wlr_backend_destroy(backend);
     }
 
     if(this->cursor_mgr){
@@ -249,7 +259,10 @@ yawc_server_error yawc_server::run() {
 
     setenv("WAYLAND_DISPLAY", socket, true);
 
-    setup_backend();
+    err = setup_backend();
+	if(err != yawc_server_error::OK){
+		return err;
+	}
 
     if (!this->config->autostart_cmds.empty()) {
         for(auto &cmd: this->config->autostart_cmds){

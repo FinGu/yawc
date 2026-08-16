@@ -14,6 +14,7 @@ void on_backend_destroy(struct wl_listener *listener, void *data){
 }
 
 yawc_server_error yawc_server::setup_backend(){
+	yawc_server_error err = yawc_server_error::OK;
     wlr_log(WLR_DEBUG, "Starting backend");
 
     this->setup_seat();
@@ -34,7 +35,10 @@ yawc_server_error yawc_server::setup_backend(){
     this->backend_destroy.notify = on_backend_destroy;
     wl_signal_add(&this->backend->events.destroy, &this->backend_destroy);
 
-    this->setup_headless_backend();
+	err = this->setup_headless_backend();
+	if(err != yawc_server_error::OK){
+		return err; 
+	}
 
     this->setup_xwayland();
     

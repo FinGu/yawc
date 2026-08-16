@@ -61,6 +61,7 @@ void on_drag_destroy(struct wl_listener *listener, void *data)
 
 void yawc_server::setup_drag()
 {
+	this->drag.running = false;
 	this->drag.icons = wlr_scene_tree_create(&this->scene->tree);
 	wlr_scene_node_set_enabled(&this->drag.icons->node, false);
 
