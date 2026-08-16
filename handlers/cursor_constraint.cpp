@@ -159,7 +159,7 @@ void yawc_server::handle_pointer_motion_constraint(double &dx, double &dy){
 
     auto [node, input] = utils::desktop_node_at(this, this->cursor->x, this->cursor->y);
 
-    if(node->type != WLR_SCENE_NODE_BUFFER){
+    if(!node || node->type != WLR_SCENE_NODE_BUFFER){
         return;
     }
 
