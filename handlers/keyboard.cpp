@@ -63,8 +63,7 @@ void handle_keyboard_input(struct wl_listener* listener,
 	if(server->cur_lock.focused){ 
        //closing the lid causes the lock surface to unfocus for some reason, also, we should never pass events to the window manager if we're locked
        //server->set_focus_surface(server->cur_lock.focused);
-       if (server->cur_lock.focused &&
-               seat->keyboard_state.focused_surface !=
+       if (seat->keyboard_state.focused_surface !=
                    server->cur_lock.focused) {
            server->set_focus_surface(server->cur_lock.focused);
        }
