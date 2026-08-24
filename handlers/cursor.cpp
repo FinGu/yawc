@@ -244,12 +244,7 @@ void handle_request_set_cursor_shape(struct wl_listener *listener, void *data){
         return;
     }
 
-	if(server->current_cursor_image && strcmp(server->current_cursor_image, image) == 0){
-		return;
-	}
-    
 	wlr_cursor_set_xcursor(server->cursor, server->cursor_mgr, image);
-	server->current_cursor_image = image;
 }
 
 void yawc_server::create_cursor()

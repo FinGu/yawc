@@ -234,7 +234,6 @@ public:
 
     struct wlr_xdg_shell* xdg_shell;
 
-	const char *current_cursor_image = nullptr;
     struct wlr_cursor* cursor = nullptr;
     struct wlr_xcursor_manager* cursor_mgr = nullptr;
 
