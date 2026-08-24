@@ -129,7 +129,7 @@ wm_buffer *create_task_switcher(struct task_switcher_data *ts_data){
     wm_unref_output(output);
 
     int32_t width = output_geometry.width / 4;
-    int32_t height = (WINDOW_LIST_ENTRY_HEIGHT+7) * toplevel_amount;
+    int32_t height = (toplevel_amount != 0 ? ((WINDOW_LIST_ENTRY_HEIGHT+7) * toplevel_amount) : 1);
 
     ts_data->active = true;
 
