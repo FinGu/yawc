@@ -101,15 +101,14 @@ void handle_cursor_button(struct wl_listener* listener,
 
     auto [_, input_on_surface] = utils::desktop_toplevel_at(server, server->cursor->x, server->cursor->y);
 
-    wlr_seat_pointer_notify_button(server->seat, event->time_msec, event->button, event->state);
+    //wlr_seat_pointer_notify_button(server->seat, event->time_msec, event->button, event->state);
 
     wlr_layer_surface_v1 *lsurface = 
         utils::toplevel_layer_surface_from_surface(input_on_surface.surface);
 
     if(lsurface){
-        //if(lsurface->current.keyboard_interactive){
-            server->set_focus_layer(lsurface);
-        //}
+        server->set_focus_layer(lsurface);
+		wlr_seat_pointer_notify_button(server->seat, event->time_msec, event->button, event->state);
         return;
     }
     
@@ -122,14 +121,20 @@ void handle_cursor_button(struct wl_listener* listener,
 
         server->reset_cursor_mode();
     }
-    
+
+	bool event_passed_back = false;
+
     if(server->wm.handle && server->wm.callbacks.on_pointer_button){
         wm_pointer_event_t out_event = wm_create_pointer_event(server, cur_mouse_op, event->button, utils::pointer_pressed(event)); 
 
-        server->wm.callbacks.on_pointer_button(&out_event);
+        event_passed_back = server->wm.callbacks.on_pointer_button(&out_event);
 
         wm_destroy_pointer_event(&out_event);
     }
+
+	if(event_passed_back || event->state == wl_pointer_button_state::WL_POINTER_BUTTON_STATE_RELEASED){
+		wlr_seat_pointer_notify_button(server->seat, event->time_msec, event->button, event->state);
+	}
 }
 
 void handle_cursor_axis(struct wl_listener* listener, void* data){
@@ -201,6 +206,7 @@ void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data
     }
 
     if(handled){
+		wlr_seat_pointer_notify_clear_focus(this->seat);
         return;
     }
 
@@ -211,7 +217,7 @@ void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data
         wlr_seat_pointer_notify_motion(this->seat, time, input_on_surface.x,
             input_on_surface.y);
     } else {
-        wlr_seat_pointer_clear_focus(this->seat);
+		wlr_seat_pointer_notify_clear_focus(this->seat);
         wlr_cursor_set_xcursor(this->cursor, this->cursor_mgr, "default");
     }
 }
