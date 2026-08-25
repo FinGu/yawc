@@ -100,10 +100,15 @@ bool on_pointer_move(wm_pointer_event_t *event){
         return true;
     }
 
-    uint32_t edges = wm_try_get_resize_grip(&node, NULL); 
+	wm_toplevel *toplevel = NULL;
+    uint32_t edges = wm_try_get_resize_grip(&node, &toplevel); 
     //that returns us the edges that the pointer is on
 
     if(edges != WM_RESIZE_EDGE_INVALID){
+		if(wm_toplevel_is_fullscreen(toplevel)){ //do not set any new icon if we have a fullscreen window
+			return false;
+		}
+
         wm_set_cursor(wm_get_cursor_name_from_edges(edges));
 
         hover_cursor = true; 
@@ -128,7 +133,9 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
     }
 
     if(edges != WM_RESIZE_EDGE_INVALID){
-		if(wm_toplevel_is_fullscreen(toplevel)){ //overwatch seemingly leaves the buffer on top, with which i can interact
+		if(wm_toplevel_is_fullscreen(toplevel)){ 
+			//overwatch seemingly at some parts of the window is not on top of the resize buffers 
+			//a *proper* fix would be to actually stop drawing the resize grips when fullscreen, it's nonsensical to have to do so, so i won't
 			return;
 		}
 
