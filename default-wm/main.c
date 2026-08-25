@@ -128,6 +128,10 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
     }
 
     if(edges != WM_RESIZE_EDGE_INVALID){
+		if(wm_toplevel_is_fullscreen(toplevel)){ //overwatch seemingly leaves the buffer on top, with which i can interact
+			return;
+		}
+
         wm_begin_resize(toplevel, edges);
         return;
     }
