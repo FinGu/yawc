@@ -191,7 +191,7 @@ utils::get_output_of_toplevel(struct yawc_toplevel* toplevel)
 }
 
 bool utils::pointer_pressed(struct wlr_pointer_button_event *event){
-    return event->state == wl_pointer_button_state::WL_POINTER_BUTTON_STATE_PRESSED && event->button == BTN_LEFT;
+    return event->state == wl_pointer_button_state::WL_POINTER_BUTTON_STATE_PRESSED;
 }
 
 void utils::wake_up_from_idle(struct yawc_server *server){
