@@ -1,4 +1,4 @@
-srcs_wm = files('main.c', 'nuklear_wm_gl2.c', 'decoration.c', 'task_switcher.c', 'util.c', 'window_data.c')
+srcs_wm = files('main.c', 'nuklear_wm_gl2.c', 'decoration.c', 'task_switcher.c', 'util.c', 'window_data.c', 'requests.c')
 
 inc = include_directories('..')
 

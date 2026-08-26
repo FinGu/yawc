@@ -1,5 +1,6 @@
 #include "decoration.h"
 #include "config.h"
+#include "util.h"
 
 #define NK_IMPLEMENTATION
 #include "nuklear_wm_gl2.h"
@@ -25,7 +26,7 @@ void draw_decoration(void *data){
     nk_end(&wd->ctx);
 
     if(nk_window_is_collapsed(&wd->ctx, id)){
-        wm_hide_toplevel(toplevel);
+		hide_and_pick_next(toplevel);
         goto end;
     }
 
@@ -56,7 +57,7 @@ wm_grip_visual grip_callback(wm_toplevel *toplevel,
 }
 
 wm_buffer *create_decoration(wm_toplevel *toplevel, wm_box_t geometry) {
-    if(wm_toplevel_is_csd(toplevel) || wm_toplevel_is_fullscreen(toplevel)){ //is client side decoration
+    if(wm_toplevel_is_csd(toplevel)){ //is client side decoration
         return NULL;
     }
 

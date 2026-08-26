@@ -124,8 +124,13 @@ typedef struct {
 } wm_resize_request_payload;
 
 typedef struct {
-    bool state;     // true = enable (Max/Full/Min), false = disable (Restore)
+    bool state;     // true = enable (Full/Min), false = disable (Restore)
 } wm_toggle_request_payload;
+
+typedef struct{
+	bool state;
+	wm_output *requested_output;
+} wm_fullscreen_request_payload;
 
 typedef void (*wm_on_toplevel_map)(wm_toplevel *t);
 typedef void (*wm_on_toplevel_unmap)(wm_toplevel *t);
@@ -187,6 +192,8 @@ WM_API void wm_raise_toplevel(wm_toplevel *t);
 WM_API void wm_lower_toplevel(wm_toplevel *t);
 
 WM_API void wm_begin_move(wm_toplevel *t);
+WM_API void wm_begin_move_with_coords(wm_toplevel *t, double x, double y);
+
 //Full box ( considering decoration )
 WM_API void wm_begin_resize(wm_toplevel *t, uint32_t edge_bits);
 
@@ -195,9 +202,11 @@ WM_API void wm_set_cursor(const char*);
 
 WM_API const char *wm_get_cursor_name_from_edges(uint32_t bits);
 
+WM_API void wm_get_cursor_coords(double *x, double *y);
+
 WM_API void wm_set_toplevel_position(wm_toplevel *t, int x, int y);
 WM_API void wm_set_toplevel_geometry(wm_toplevel *t, wm_box_t geo);
-WM_API wm_box_t wm_restore_toplevel_geometry(wm_toplevel *t);
+WM_API wm_box_t wm_get_last_toplevel_geometry(wm_toplevel *t);
 
 WM_API wm_box_t wm_get_toplevel_geometry(wm_toplevel *t);
 
@@ -297,6 +306,14 @@ WM_API wm_buffer *wm_toplevel_unattach_buffer(wm_toplevel *toplevel, const char 
 WM_API void wm_toplevel_attach_state(wm_toplevel *toplevel, void *data);
 
 WM_API void *wm_get_toplevel_state(wm_toplevel *toplevel);
+
+typedef enum {
+    WM_LAYER_NORMAL,
+    WM_LAYER_ABOVE,
+    WM_LAYER_UNMANAGED	
+} wm_layer_type;
+
+WM_API void wm_change_toplevel_layer(wm_toplevel *toplevel, wm_layer_type layer);
 
 #ifdef __cplusplus
 } /* extern "C" */

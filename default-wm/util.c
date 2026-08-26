@@ -1,6 +1,9 @@
 #include "util.h"
 
 #include "config.h"
+#include "wm_api.h"
+
+#include <math.h>
 
 void center_window(wm_toplevel *toplevel){
     wm_box_t toplevel_geometry = wm_get_toplevel_geometry(toplevel);
@@ -42,7 +45,7 @@ void center_window(wm_toplevel *toplevel){
     wm_unref_output(cur_output);
 }
 
-void maximize_window(wm_toplevel *toplevel){
+wm_box_t maximize_window(wm_toplevel *toplevel){
     wm_output *output = wm_get_output_of_toplevel(toplevel);
     wm_box_t output_geometry = wm_get_output_usable_area(output);
 
@@ -57,29 +60,77 @@ void maximize_window(wm_toplevel *toplevel){
 
     wm_set_toplevel_maximized(toplevel, true);
     wm_set_toplevel_geometry(toplevel, output_geometry);
+
+	return output_geometry;
 }
 
-void restore_maximized_window(wm_toplevel *toplevel, double cursor_x, double cursor_y){
+wm_box_t unmaximize_window(wm_toplevel *toplevel){
+	double cursor_x, cursor_y;
+	wm_get_cursor_coords(&cursor_x, &cursor_y);
+
     wm_box_t max_geo = wm_get_toplevel_geometry(toplevel);
-    wm_box_t restore_geo = wm_restore_toplevel_geometry(toplevel);
+    wm_box_t restore_geo = wm_get_last_toplevel_geometry(toplevel);
 
-    double ratio_x;
+    double ratio_x = fabs(cursor_x - max_geo.x) / (double)max_geo.width;
 
-    //when cursor_x is higher than the width we need to do the inverse
-    if((cursor_x - max_geo.x) > max_geo.width){
-        ratio_x = max_geo.width / (cursor_x - max_geo.x);
-    } else{
-        ratio_x = (cursor_x - max_geo.x) / max_geo.width;
-    }
-    
-    restore_geo.x = cursor_x - (ratio_x * restore_geo.width);
-    restore_geo.y = cursor_y + (DECORATION_HEIGHT/2.); // an estimate for y position is good enough
+	double ratio_y = fabs(cursor_y - max_geo.y) / (double)max_geo.height;
 
-    wm_set_toplevel_maximized(toplevel, false);
-    wm_set_toplevel_geometry(toplevel, restore_geo);
+	restore_geo.x = cursor_x - (ratio_x * restore_geo.width);
+	restore_geo.y = cursor_y - (ratio_y * restore_geo.height);
+
+	if(!wm_toplevel_is_csd(toplevel)){
+		//decent enough
+		restore_geo.y += DECORATION_HEIGHT;
+	}
+
+	wm_set_toplevel_maximized(toplevel, false);
+	wm_set_toplevel_geometry(toplevel, restore_geo);
+
+	return restore_geo;
+}
+
+void fullscreen_window(wm_toplevel *toplevel, wm_output *output){
+	bool should_unref = false;
+
+	if(!output){
+		output = wm_get_output_of_toplevel(toplevel);		
+		should_unref = true;
+	}
+
+	wm_box_t output_box = wm_get_output_geometry(output);
+
+	wm_set_toplevel_fullscreen(toplevel, true);
+	wm_set_toplevel_geometry(toplevel, output_box);
+	wm_change_toplevel_layer(toplevel, WM_LAYER_ABOVE);
+
+	if(should_unref){
+		wm_unref_output(output);
+	}
+}
+
+void unfullscreen_window(wm_toplevel *toplevel){
+	wm_box_t restore_geo = wm_get_last_toplevel_geometry(toplevel);
+
+	wm_set_toplevel_fullscreen(toplevel, false);
+	wm_set_toplevel_geometry(toplevel, restore_geo);
+	wm_change_toplevel_layer(toplevel, WM_LAYER_NORMAL);
 }
 
 double get_time_diff(struct timespec end, struct timespec start) {
     return (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
 }
 
+void hide_and_pick_next(wm_toplevel *toplevel){
+	wm_hide_toplevel(toplevel);
+
+	wm_toplevel *next = wm_get_next_toplevel(toplevel);
+
+	if(!next){
+		return;	
+	}
+
+	wm_unhide_toplevel(next);
+	wm_focus_toplevel(next);
+
+	wm_unref_toplevel(next);
+}

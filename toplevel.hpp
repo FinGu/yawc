@@ -76,7 +76,7 @@ struct yawc_toplevel {
     void request_close();
 
     //default impls
-    void set_fullscreen(bool enable);
+    void default_set_fullscreen(bool enable);
     void default_set_minimized(bool enable);
     void default_set_maximized(bool enable);
 

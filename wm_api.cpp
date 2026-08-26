@@ -192,6 +192,14 @@ WM_API void wm_begin_move(wm_toplevel *t) {
     begin_move(t->toplevel);
 }
 
+WM_API void wm_begin_move_with_coords(wm_toplevel *t, double x, double y){
+	if(!t){
+        return;
+    }
+
+    begin_move(t->toplevel, x, y);
+}
+
 WM_API void wm_begin_resize(wm_toplevel *t, uint32_t edge_bits){
     if(!t){
         return;
@@ -207,6 +215,17 @@ WM_API void wm_set_cursor(const char* name){
 WM_API const char *wm_get_cursor_name_from_edges(uint32_t bits){
     return wlr_xcursor_get_resize_name((enum wlr_edges)bits);
 }
+
+WM_API void wm_get_cursor_coords(double *x, double *y){
+	if(x){
+		*x = wm_server->cursor->x;
+	}
+
+	if(y){
+		*y = wm_server->cursor->y;
+	}
+}
+
 
 WM_API void wm_cancel_window_op() {
     wm_server->reset_cursor_mode();
@@ -234,12 +253,12 @@ WM_API void wm_set_toplevel_geometry(wm_toplevel *t, wm_box_t geo) {
     wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, geo.width, geo.height);
 }
 
-WM_API wm_box_t wm_restore_toplevel_geometry(wm_toplevel *t){
+WM_API wm_box_t wm_get_last_toplevel_geometry(wm_toplevel *t){
     if(!t){
         return {};
     }
 
-    auto geo = t->toplevel->reset_state(); 
+	auto geo = t->toplevel->last_geo;
 
     return wm_box_t{geo.x, geo.y, geo.width, geo.height};
 }
@@ -355,13 +374,18 @@ WM_API void wm_hide_toplevel(wm_toplevel *t) {
 
     yawc_toplevel *toplevel = t->toplevel;
 
+	toplevel->server->reset_cursor_mode();
     wlr_scene_node_set_enabled(&toplevel->scene_tree->node, false);
 
     if(toplevel->foreign_handle){
         wlr_foreign_toplevel_handle_v1_set_minimized(toplevel->foreign_handle, true);
         wlr_foreign_toplevel_handle_v1_set_activated(toplevel->foreign_handle, false);
     }
-    
+	
+	wlr_seat_keyboard_clear_focus(wm_server->seat);
+	wlr_xdg_toplevel_set_activated(toplevel->xdg_toplevel, false);
+
+	/*
     auto *tmp_toplevel = wm_get_focused_toplevel();
 
     if(!tmp_toplevel){
@@ -374,7 +398,7 @@ WM_API void wm_hide_toplevel(wm_toplevel *t) {
         wlr_seat_keyboard_clear_focus(wm_server->seat);
     }
 
-    wm_unref_toplevel(tmp_toplevel);
+    wm_unref_toplevel(tmp_toplevel);*/
 
     t->toplevel->hidden = true;
 }
@@ -661,9 +685,19 @@ WM_API void wm_set_toplevel_fullscreen(wm_toplevel *t, bool f){
         return;
     }
 
-    auto *toplevel = t->toplevel;
+    auto toplevel = t->toplevel;
 
-    toplevel->set_fullscreen(f);
+	if(f){
+    	toplevel->save_state();
+	}
+
+    toplevel->fullscreen = f;
+
+	if(toplevel->foreign_handle){
+		wlr_foreign_toplevel_handle_v1_set_fullscreen(toplevel->foreign_handle, f);
+	}
+
+	wlr_xdg_toplevel_set_fullscreen(toplevel->xdg_toplevel, f);
 }
 
 WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m){
@@ -671,11 +705,17 @@ WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m){
         return;
     }
 
-    auto *toplevel = t->toplevel;
+    auto toplevel = t->toplevel;
 
-    toplevel->save_state();
+	if(m){
+    	toplevel->save_state();
+	}
 
     toplevel->maximized = m;
+
+	if(toplevel->foreign_handle){ 
+        wlr_foreign_toplevel_handle_v1_set_maximized(toplevel->foreign_handle, m);
+    }
 
     wlr_xdg_toplevel_set_maximized(toplevel->xdg_toplevel, m);
 }
@@ -974,6 +1014,30 @@ WM_API void *wm_get_toplevel_state(wm_toplevel *toplevel){
     return toplevel->toplevel->wm_state;
 }
 
+WM_API void wm_change_toplevel_layer(wm_toplevel *toplevel, wm_layer_type layer){
+	if(!toplevel){
+		return;
+	}
+
+	auto t = toplevel->toplevel;
+	auto *server = t->server;
+
+	struct wlr_scene_tree *chosen_tree = nullptr;
+	switch(layer){
+		case WM_LAYER_NORMAL:
+			chosen_tree = server->layers.normal;
+			break;
+		case WM_LAYER_ABOVE:
+			chosen_tree = server->layers.fullscreen;
+			break;
+		case WM_LAYER_UNMANAGED:
+			chosen_tree = server->layers.unmanaged;
+			break;
+	}
+
+	wlr_scene_node_reparent(&t->scene_tree->node, chosen_tree);
+}
+
 WM_API wm_toplevel *wm_get_toplevel_of_buffer(wm_buffer *b){
     if(!b){
         return nullptr;
@@ -998,14 +1062,14 @@ WM_API wm_toplevel* wm_get_next_toplevel(struct wm_toplevel *cur){
     if(!cur){
         yawc_toplevel *toplevel;
 
-        auto *out_toplevel = wl_container_of(list_head->prev, toplevel, link);
+        auto *out_toplevel = wl_container_of(list_head->next, toplevel, link);
 
         return wm_create_toplevel(out_toplevel);
     }
 
-    auto *next_link = cur->toplevel->link.prev;
+    auto *next_link = cur->toplevel->link.next;
     if(next_link == list_head){
-        next_link = next_link->prev;
+        next_link = next_link->next;
     }
 
     auto *toplevel = wl_container_of(next_link, cur->toplevel, link);

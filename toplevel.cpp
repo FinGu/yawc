@@ -1,3 +1,4 @@
+#include "wm_api.h"
 #include "wm_defs.hpp"
 
 #include "decoration.hpp"
@@ -71,6 +72,7 @@ void yawc_toplevel::send_geometry_update(){
         }
 
         if(!this->maximized && !this->fullscreen){
+			wm_plugin_log("t%p last(%i,%i,%i,%i), new(%i,%i,%i,%i)", this->xdg_toplevel, last_geo->x, last_geo->y, last_geo->width, last_geo->height, geo.x, geo.y, geo.width, geo.height);
             this->save_state();
         }
     }
@@ -130,7 +132,7 @@ void yawc_toplevel::map(){
     auto *requested = &this->xdg_toplevel->requested;
         
     if(requested->fullscreen){
-        this->set_fullscreen(true);
+        this->default_set_fullscreen(true);
     } else if(requested->maximized){
         this->default_set_maximized(true);
     }
@@ -191,7 +193,9 @@ void yawc_toplevel::request_maximize(bool enable){
     if(server->wm.handle && server->wm.callbacks.on_toplevel_request_event){
         wm_toplevel ctoplevel {this};
 
-        wm_toggle_request_payload payload {enable};
+        wm_toggle_request_payload payload {
+			enable,
+		};
 
         auto cevent = 
             wm_create_toplevel_request_event(&ctoplevel, wm_toplevel_request_type_t::WM_REQUEST_MAXIMIZE, &payload);
@@ -228,7 +232,19 @@ void yawc_toplevel::request_fullscreen(bool enable){
 
     if (server->wm.handle && server->wm.callbacks.on_toplevel_request_event) {
         wm_toplevel wm_tl {this};
-        wm_toggle_request_payload payload {enable};
+		wm_output output{};
+
+        wm_fullscreen_request_payload payload {
+			enable,
+		};
+
+		if(this->xdg_toplevel->requested.fullscreen_output){
+			output.output = 
+				reinterpret_cast<struct yawc_output*>(this->xdg_toplevel->requested.fullscreen_output->data);
+			payload.requested_output = &output;
+		} else{
+			payload.requested_output = nullptr;
+		}
 
         auto cevent = 
             wm_create_toplevel_request_event(&wm_tl, WM_REQUEST_FULLSCREEN, &payload);
@@ -241,7 +257,7 @@ void yawc_toplevel::request_fullscreen(bool enable){
         return;
     }
 
-    this->set_fullscreen(enable);
+    this->default_set_fullscreen(enable);
 }
 
 void yawc_toplevel::request_move(){
@@ -331,7 +347,7 @@ void yawc_toplevel::request_close(){
 }
 
 struct yawc_toplevel_geometry yawc_toplevel::reset_state(){
-    auto last_geo = this->last_geo;
+    yawc_toplevel_geometry last_geo {this->last_geo};
 
     wlr_scene_node_set_position(&this->scene_tree->node, last_geo.x,
         last_geo.y);

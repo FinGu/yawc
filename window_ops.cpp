@@ -22,6 +22,17 @@ void begin_move(yawc_toplevel *toplevel)
     server->grabbed_mov_y = server->cursor->y - win_ay;
 }
 
+void begin_move(yawc_toplevel *toplevel, double x, double y)
+{
+    auto *server = toplevel->server;
+
+    server->grabbed_toplevel = toplevel;
+    server->current_mouse_operation = MOVING;
+
+    server->grabbed_mov_x = server->cursor->x - x;
+    server->grabbed_mov_y = server->cursor->y - y;
+}
+
 void begin_resize(yawc_toplevel *toplevel, uint32_t edges)
 {
     auto *server = toplevel->server;
@@ -49,7 +60,7 @@ void begin_resize(yawc_toplevel *toplevel, uint32_t edges)
     server->grabbed_geo_box.y += win_ay;
 }
 
-void yawc_toplevel::set_fullscreen(bool enable){
+void yawc_toplevel::default_set_fullscreen(bool enable){
     if (enable) {
         struct yawc_output *chosen_output;
         wlr_output *requested_output = this->xdg_toplevel->requested.fullscreen_output;
@@ -86,7 +97,7 @@ void yawc_toplevel::set_fullscreen(bool enable){
         wlr_foreign_toplevel_handle_v1_set_fullscreen(this->foreign_handle, enable);
     }
 
-    this->send_geometry_update();
+    //this->send_geometry_update();
 }
 
 void yawc_toplevel::default_set_maximized(bool enable){

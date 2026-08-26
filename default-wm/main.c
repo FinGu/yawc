@@ -2,9 +2,12 @@
 
 #include "decoration.h"
 
+#include "requests.h"
+
 #include "util.h"
 
 #include "config.h"
+#include "wm_api.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -158,17 +161,26 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
         maximize_window(toplevel);
 
         wm_cancel_window_op();
-    } else {
-        data->last_left_click = now;
-        data->last_click_x = (int)event->global_x;
-        data->last_click_y = (int)event->global_y;
 
-        if(wm_toplevel_is_maximized(toplevel)){
-            restore_maximized_window(toplevel, event->global_x, event->global_y);
-        }
-
-        wm_begin_move(toplevel);
+		return;
     } 
+
+    data->last_left_click = now;
+    data->last_click_x = (int)event->global_x;
+    data->last_click_y = (int)event->global_y;
+
+	if(!wm_toplevel_is_maximized(toplevel)){
+		wm_begin_move(toplevel);
+		return;
+	}
+
+    wm_box_t result = unmaximize_window(toplevel);
+
+	create_decoration(toplevel, result);
+
+	//when we unmaximize the window, as it tries to change the window's geometry, the commit takes some time
+	//so that's why we pass the restored coords
+	wm_begin_move_with_coords(toplevel, result.x, result.y);
 }
 
 void handle_border_gesture(wm_pointer_event_t *event, wm_toplevel *cur_toplevel){
@@ -301,6 +313,33 @@ free_toplevel:
     return pass_event_back;
 }
 
+void on_toplevel_request_event(wm_toplevel_request_event_t *event){
+	switch(event->type){
+		case WM_REQUEST_MOVE:
+			on_toplevel_move_request(event);
+			break;
+		case WM_REQUEST_RESIZE:
+			on_toplevel_resize_request(event);
+			break;
+		case WM_REQUEST_MAXIMIZE:
+			on_toplevel_maximize_request(event);
+			break;
+		case WM_REQUEST_FULLSCREEN:
+			on_toplevel_fullscreen_request(event);
+			break;
+		case WM_REQUEST_MINIMIZE:
+			on_toplevel_minimize_request(event);
+			break;
+		case WM_REQUEST_ACTIVATE:
+			on_toplevel_activate_request(event);
+			break;
+		case WM_REQUEST_CLOSE:
+			on_toplevel_close_request(event);
+			break;
+	}
+}
+
+
 bool wm_register(wm_callbacks_t *cbs, void *user_data){
     wm_plugin_log("Initializing the default window manager");
 
@@ -311,8 +350,7 @@ bool wm_register(wm_callbacks_t *cbs, void *user_data){
     cbs->on_geometry = on_toplevel_geometry;
     cbs->on_key = on_keyboard_key;
 
-    cbs->on_toplevel_request_event = NULL; 
-    // the compositor by default accepts and handle all requests in a floating way
+    cbs->on_toplevel_request_event = on_toplevel_request_event; //when the compositor or layer shell or a csd window requests an event, this is the function that's called
 
     //we need to run this with an opengl context
     wm_render_fn_to_buffer(NULL, nk_wm_init, NULL);
