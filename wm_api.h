@@ -173,6 +173,8 @@ WM_API wm_toplevel **wm_get_toplevels(size_t *size);
 WM_API void wm_unref_toplevels(wm_toplevel **t, size_t amnt);
 
 WM_API wm_toplevel *wm_get_focused_toplevel(void);
+WM_API bool wm_toplevel_is_focused(wm_toplevel *);
+
 WM_API void wm_unref_toplevel(wm_toplevel *);
 
 WM_API wm_node_coords_t wm_try_get_node_at_coords(wm_node *node, double x, double y);

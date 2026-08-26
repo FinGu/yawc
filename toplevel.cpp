@@ -72,7 +72,6 @@ void yawc_toplevel::send_geometry_update(){
         }
 
         if(!this->maximized && !this->fullscreen){
-			wm_plugin_log("t%p last(%i,%i,%i,%i), new(%i,%i,%i,%i)", this->xdg_toplevel, last_geo->x, last_geo->y, last_geo->width, last_geo->height, geo.x, geo.y, geo.width, geo.height);
             this->save_state();
         }
     }

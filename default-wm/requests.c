@@ -59,7 +59,7 @@ void on_toplevel_minimize_request(wm_toplevel_request_event_t *event){
 		return;
 	}
 
-	hide_and_pick_next(toplevel);
+	hide_and_repair_focus(toplevel);
 }
 
 void on_toplevel_activate_request(wm_toplevel_request_event_t *event){

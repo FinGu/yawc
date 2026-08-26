@@ -120,9 +120,20 @@ double get_time_diff(struct timespec end, struct timespec start) {
     return (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
 }
 
-void hide_and_pick_next(wm_toplevel *toplevel){
+void hide_and_repair_focus(wm_toplevel *toplevel){
+	//we only focus the next toplevel in case the one we're hiding is currently being used ( allow for show desktop button )
+	bool active = wm_toplevel_is_focused(toplevel);
+
 	wm_hide_toplevel(toplevel);
 
+	if(!active){
+		return;
+	}
+
+	focus_next_toplevel(toplevel);
+}
+
+void focus_next_toplevel(wm_toplevel *toplevel){
 	wm_toplevel *next = wm_get_next_toplevel(toplevel);
 
 	if(!next){
@@ -134,3 +145,5 @@ void hide_and_pick_next(wm_toplevel *toplevel){
 
 	wm_unref_toplevel(next);
 }
+
+

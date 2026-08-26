@@ -26,7 +26,7 @@ void draw_decoration(void *data){
     nk_end(&wd->ctx);
 
     if(nk_window_is_collapsed(&wd->ctx, id)){
-		hide_and_pick_next(toplevel);
+		hide_and_repair_focus(toplevel);
         goto end;
     }
 

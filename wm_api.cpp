@@ -1086,7 +1086,21 @@ WM_API wm_toplevel *wm_get_focused_toplevel(){
         return nullptr;
     }
     
-    auto *out_toplevel = wl_container_of(list_head->prev, toplevel, link);
+    auto *out_toplevel = wl_container_of(list_head->next, toplevel, link);
     
     return wm_create_toplevel(out_toplevel);
+}
+
+WM_API bool wm_toplevel_is_focused(wm_toplevel *t){
+	yawc_toplevel *toplevel;
+
+	struct wl_list *list_head = &wm_server->toplevels;
+    
+    if(wl_list_empty(list_head)){
+        return false;
+    }
+    
+    auto focused = wl_container_of(list_head->next, toplevel, link);
+
+	return t->toplevel->xdg_toplevel == focused->xdg_toplevel;
 }

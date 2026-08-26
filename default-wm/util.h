@@ -14,4 +14,6 @@ void unfullscreen_window(wm_toplevel *toplevel);
 
 double get_time_diff(struct timespec end, struct timespec start);
 
-void hide_and_pick_next(wm_toplevel *toplevel);
+void focus_next_toplevel(wm_toplevel *toplevel);
+
+void hide_and_repair_focus(wm_toplevel *toplevel);
