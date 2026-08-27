@@ -75,8 +75,8 @@ wm_box_t unmaximize_window(wm_toplevel *toplevel){
 	double ratio_y = fabs(cursor_y - max_geo.y) / (double)max_geo.height;
 
 	if(ratio_x > 1){
-		ratio_x -= 1; // to handle the edge case of our right side gestures
-					  // can this ever go over 2? Im honestly not sure
+		ratio_x -= (int)ratio_x; // to handle the edge case of our right side gestures
+								 // 1.53 - 1 => 0.53 :)
 	}
 
 	restore_geo.x = cursor_x - (ratio_x * restore_geo.width);
