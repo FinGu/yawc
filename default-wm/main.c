@@ -83,7 +83,7 @@ void on_toplevel_map(wm_toplevel *toplevel){
     create_decoration(toplevel, wm_get_toplevel_geometry(toplevel));
 
     if(wm_toplevel_wants_fullscreen(toplevel)){
-        wm_set_toplevel_fullscreen(toplevel, true);
+		fullscreen_window(toplevel, NULL);
     } else if(wm_toplevel_wants_maximize(toplevel)){
         maximize_window(toplevel);
     } else{
