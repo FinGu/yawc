@@ -687,9 +687,9 @@ WM_API void wm_set_toplevel_fullscreen(wm_toplevel *t, bool f){
 
     auto toplevel = t->toplevel;
 
-	if(f){
+	/*if(f){
     	toplevel->save_state();
-	}
+	}*/
 
     toplevel->fullscreen = f;
 
@@ -707,9 +707,9 @@ WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m){
 
     auto toplevel = t->toplevel;
 
-	if(m){
+	/*if(m){
     	toplevel->save_state();
-	}
+	}*/
 
     toplevel->maximized = m;
 
