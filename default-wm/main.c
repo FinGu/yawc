@@ -181,7 +181,7 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
 	wm_begin_move(toplevel);
 }
 
-void handle_border_gesture(wm_pointer_event_t *event, wm_toplevel *cur_toplevel){
+void handle_border_gestures(wm_pointer_event_t *event, wm_toplevel *cur_toplevel){
     if(event->button != BTN_LEFT) {
         return;
     }
@@ -261,7 +261,7 @@ bool on_pointer_button(wm_pointer_event_t *event){
             pass_event_back = false;
         }
 
-        handle_border_gesture(event, toplevel);
+        handle_border_gestures(event, toplevel);
         
         goto free_toplevel;
     }
@@ -281,16 +281,17 @@ bool on_pointer_button(wm_pointer_event_t *event){
 
         wm_focus_toplevel(toplevel);
 
-        //handle clicking on what matters
+		//handle clicking on what matters
         nk_input_begin(&data->ctx);
         nk_wm_handle_pointer_event(&data->ctx, event, coords.local_x, coords.local_y); 
         nk_input_end(&data->ctx);
 
-        wm_render_fn_to_buffer(buffer, draw_decoration, data);
-
         handle_pressed_gestures(event, data, toplevel, edges);
-        handle_border_gesture(event, toplevel);
+        handle_border_gestures(event, toplevel);
 
+		buffer = data->buffer; //create_decoration inside the handle functions might change the buffer we're using to draw
+		wm_render_fn_to_buffer(buffer, draw_decoration, data);
+				
         pass_event_back = false;
 
         goto free_toplevel;

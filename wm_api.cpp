@@ -1068,7 +1068,7 @@ WM_API wm_toplevel* wm_get_next_toplevel(struct wm_toplevel *cur){
 
     auto *next_link = cur->toplevel->link.next;
     if(next_link == list_head){
-        next_link = next_link->next;
+		return nullptr;
     }
 
     auto *toplevel = wl_container_of(next_link, cur->toplevel, link);
