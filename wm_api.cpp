@@ -248,9 +248,9 @@ WM_API void wm_set_toplevel_geometry(wm_toplevel *t, wm_box_t geo) {
 
     yawc_toplevel *toplevel = t->toplevel;
 
-    wlr_scene_node_set_position(&toplevel->scene_tree->node, geo.x, geo.y);
+	wlr_scene_node_set_position(&toplevel->scene_tree->node, geo.x, geo.y);
 
-    wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, geo.width, geo.height);
+	wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, geo.width, geo.height);
 }
 
 WM_API wm_box_t wm_get_last_toplevel_geometry(wm_toplevel *t){

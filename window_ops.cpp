@@ -9,7 +9,7 @@
 void begin_move(yawc_toplevel *toplevel)
 {
     auto *server = toplevel->server;
-
+	
     server->grabbed_toplevel = toplevel;
     server->current_mouse_operation = MOVING;
 

@@ -11,9 +11,9 @@ void on_toplevel_move_request(wm_toplevel_request_event_t *event){
 	}
 
 	if(wm_toplevel_is_maximized(toplevel)){
-		wm_box_t result = unmaximize_window(toplevel);
+		unmaximize_window(toplevel);
 
-		wm_begin_move_with_coords(toplevel, result.x, result.y);
+		wm_begin_move(toplevel);
 
 		return;
 	}

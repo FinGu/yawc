@@ -178,9 +178,7 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
 
 	create_decoration(toplevel, result);
 
-	//when we unmaximize the window, as it tries to change the window's geometry, the commit takes some time
-	//so that's why we pass the restored coords
-	wm_begin_move_with_coords(toplevel, result.x, result.y);
+	wm_begin_move(toplevel);
 }
 
 void handle_border_gesture(wm_pointer_event_t *event, wm_toplevel *cur_toplevel){
