@@ -132,9 +132,9 @@ void handle_cursor_button(struct wl_listener* listener,
         wm_destroy_pointer_event(&out_event);
     }
 
-	//if(event_passed_back || event->state == WL_POINTER_BUTTON_STATE_RELEASED){
+	if(event_passed_back || event->state == WL_POINTER_BUTTON_STATE_RELEASED){
 		wlr_seat_pointer_notify_button(server->seat, event->time_msec, event->button, event->state);
-	//}
+	}
 }
 
 void handle_cursor_axis(struct wl_listener* listener, void* data){
