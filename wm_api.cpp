@@ -382,7 +382,6 @@ WM_API void wm_hide_toplevel(wm_toplevel *t) {
         wlr_foreign_toplevel_handle_v1_set_activated(toplevel->foreign_handle, false);
     }
 	
-	wlr_seat_keyboard_clear_focus(wm_server->seat);
 	wlr_xdg_toplevel_set_activated(toplevel->xdg_toplevel, false);
 
 	/*
