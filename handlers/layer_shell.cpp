@@ -141,10 +141,16 @@ void arrange_surface(struct yawc_output *output, const struct wlr_box *full_area
 void arrange_layers(struct yawc_output *output) {
     auto *server = output->server;
 
-	struct wlr_box usable_area = { 0 };
+	/*struct wlr_box usable_area = { 0 };
 	wlr_output_effective_resolution(output->wlr_output,
 			&usable_area.width, &usable_area.height);
-	const struct wlr_box full_area = usable_area;
+	const struct wlr_box full_area = usable_area;*/
+	struct wlr_box usable_area = { 0 };
+   	wlr_output_layout_get_box(
+       output->server->output_layout,
+       output->wlr_output,
+       &usable_area);
+   	const struct wlr_box full_area = usable_area;
 
 	arrange_surface(output, &full_area, &usable_area, server->layers.overlay, true);
 	arrange_surface(output, &full_area, &usable_area, server->layers.top, true);

@@ -23,22 +23,7 @@ void on_toplevel_geometry(wm_toplevel *toplevel, wm_box_t last_geo, wm_box_t new
             last_geo.x, last_geo.y, last_geo.width, last_geo.height, 
             new_box.x, new_box.y, new_box.width, new_box.height);*/
 
-    wm_output *toplevel_output = wm_get_output_of_toplevel(toplevel);
-
-    if(!toplevel_output){
-        return;
-    }
-
-    wm_box_t output_geo = wm_get_output_geometry(toplevel_output);
-    wm_unref_output(toplevel_output);
-
-    if(!wm_toplevel_is_csd(toplevel) 
-            && !wm_toplevel_is_maximized(toplevel) 
-            && !wm_toplevel_is_fullscreen(toplevel)
-            && new_box.y - DECORATION_HEIGHT < output_geo.y){
-        wm_set_toplevel_position(toplevel, new_box.x, output_geo.y + DECORATION_HEIGHT);
-    }
-
+	ensure_toplevel_decoration_visible(toplevel, new_box);
     create_decoration(toplevel, new_box);
 }
 
@@ -83,7 +68,13 @@ void on_toplevel_map(wm_toplevel *toplevel){
     create_decoration(toplevel, wm_get_toplevel_geometry(toplevel));
 
     if(wm_toplevel_wants_fullscreen(toplevel)){
-		fullscreen_window(toplevel, NULL);
+		wm_output *wanted_output = wm_get_wanted_fullscreen_output(toplevel);
+
+		fullscreen_window(toplevel, wanted_output);
+
+		if(wanted_output){
+			wm_unref_output(wanted_output);
+		} 
     } else if(wm_toplevel_wants_maximize(toplevel)){
         maximize_window(toplevel);
     } else{
@@ -141,6 +132,8 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
 			//a *proper* fix would be to actually stop drawing the resize grips when fullscreen, it's nonsensical to have to do so, so i won't
 			return;
 		}
+
+		ensure_toplevel_decoration_visible(toplevel, wm_get_toplevel_geometry(toplevel));
 
         wm_begin_resize(toplevel, edges);
         return;

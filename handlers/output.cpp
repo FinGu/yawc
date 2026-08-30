@@ -1,7 +1,6 @@
 #include <tuple>
 
 #include "../lock.hpp"
-#include "../toplevel.hpp"
 #include "../layer.hpp"
 #include "../utils.hpp"
 
@@ -109,9 +108,9 @@ bool apply_output_config(struct yawc_server *server,
         wlr_scene_output_layout_add_output(server->scene_layout, olo,
             youtput->scene_output);
     } else{
-        wlr_output_layout_remove(output_layout, output);
+		reorganize_toplevels(server, output);
 
-        reorganize_toplevels(server, output);
+        wlr_output_layout_remove(output_layout, output);
     }
 
     return ok;
@@ -310,6 +309,15 @@ void destroy_output(struct wl_listener *listener, void *data){
 
         wlr_layer_surface_v1_destroy(layer->layer_surface);
     }
+
+	if(server->cur_lock.lock){
+		struct yawc_session_lock_output *lock_output, *tmplck;
+		wl_list_for_each_safe(lock_output, tmplck, &server->cur_lock.outputs, link){
+			if(lock_output->output == output){
+				wlr_scene_node_destroy(&lock_output->tree->node);
+			}
+		}
+	}
 
     delete output; 
 

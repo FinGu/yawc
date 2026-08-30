@@ -649,8 +649,8 @@ WM_API wm_box_t wm_get_toplevel_geometry(wm_toplevel *t) {
 
     box.width = geometry.width;
     box.height = geometry.height;
-    box.x = geometry.x;
-    box.y = geometry.y;
+
+   	wlr_scene_node_coords(&t->toplevel->scene_tree->node, &box.x, &box.y);
 
     return box;
 }
@@ -780,6 +780,28 @@ WM_API bool wm_toplevel_wants_fullscreen(wm_toplevel *t){
     }
 
     return toplevel->xdg_toplevel->requested.fullscreen;
+}
+
+wm_output *wm_get_wanted_fullscreen_output(wm_toplevel *t){
+	if(!t || !t->toplevel){
+        return nullptr;
+    }
+
+    auto toplevel = t->toplevel;
+
+    if(!toplevel->xdg_toplevel){
+        return nullptr;
+    }
+
+	auto output = toplevel->xdg_toplevel->requested.fullscreen_output;
+
+	if(!output){
+		return nullptr;
+	}
+
+	auto youtput = static_cast<yawc_output*>(output->data);
+
+    return new wm_output{youtput};
 }
 
 WM_API wm_buffer* wm_create_buffer(int width, int height, bool cpu_buffer) {
@@ -1088,3 +1110,4 @@ WM_API bool wm_toplevel_is_focused(wm_toplevel *t){
 
 	return t->toplevel->xdg_toplevel == focused->xdg_toplevel;
 }
+

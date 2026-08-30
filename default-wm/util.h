@@ -17,3 +17,5 @@ double get_time_diff(struct timespec end, struct timespec start);
 void focus_next_toplevel();
 
 void hide_and_repair_focus(wm_toplevel *toplevel);
+
+void ensure_toplevel_decoration_visible(wm_toplevel *toplevel, wm_box_t box);

@@ -2,27 +2,8 @@
 
 #include "../lock.hpp"
 
-#include "../toplevel.hpp"
 #include "../utils.hpp"
 #include "../layer.hpp"
-
-struct yawc_session_lock_output{
-	struct wlr_scene_tree *tree;
-	struct wlr_scene_rect *background;
-
-	struct yawc_output *output;
-
-	struct yawc_server *server;
-
-	struct wl_list link;
-
-	struct wl_listener destroy;
-
-	struct wlr_session_lock_surface_v1 *surface;
-
-	struct wl_listener surface_destroy;
-	struct wl_listener surface_map;
-};
 
 void focus_surface(struct yawc_server *server, wlr_surface *surface){
 	server->set_focus_surface(surface);
@@ -30,10 +11,18 @@ void focus_surface(struct yawc_server *server, wlr_surface *surface){
 }
 
 void lock_output_reconfigure(struct yawc_session_lock_output *output) {
-	int width = output->output->last_width;
-	int height = output->output->last_height;
+   	struct wlr_box box;
+   	wlr_output_layout_get_box(
+       output->server->output_layout,
+       output->output->wlr_output,
+       &box);
 
-	wlr_log(WLR_ERROR, "Ok so width: %i, height: %i", width, height);
+	int width = box.width;
+	int height = box.height;
+
+	//move the lock to the position of the output
+   	wlr_scene_node_set_position(&output->tree->node, box.x, box.y);
+
 	wlr_scene_rect_set_size(output->background, width, height);
 
 	if (output->surface) {

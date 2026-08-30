@@ -3,15 +3,13 @@
 #include "config.h"
 #include "wm_api.h"
 
-#include <math.h>
-
 void center_window(wm_toplevel *toplevel){
     wm_box_t toplevel_geometry = wm_get_toplevel_geometry(toplevel);
 
-    wm_output *cur_output = wm_get_output_of_toplevel(toplevel);
+    wm_output *cur_output = wm_get_focused_output();
 
     if(!cur_output){
-        cur_output = wm_get_focused_output();
+        cur_output = wm_get_output_of_toplevel(toplevel);
     }
 
     wm_box_t output_geometry = wm_get_output_usable_area(cur_output);
@@ -81,11 +79,6 @@ wm_box_t unmaximize_window(wm_toplevel *toplevel){
 
 	restore_geo.x = cursor_x - (ratio_x * restore_geo.width);
 	restore_geo.y = cursor_y - (ratio_y * restore_geo.height);
-
-	if(!wm_toplevel_is_csd(toplevel)){
-		//decent enough
-		restore_geo.y += DECORATION_HEIGHT;
-	}
 
 	wm_set_toplevel_maximized(toplevel, false);
 	wm_set_toplevel_geometry(toplevel, restore_geo);
@@ -158,4 +151,22 @@ void focus_next_toplevel(){
 	wm_unref_toplevel(next);
 }
 
+
+void ensure_toplevel_decoration_visible(wm_toplevel *toplevel, wm_box_t box){
+	wm_output *toplevel_output = wm_get_output_of_toplevel(toplevel);
+
+    if(!toplevel_output){
+        return;
+    }
+
+    wm_box_t output_geo = wm_get_output_geometry(toplevel_output);
+    wm_unref_output(toplevel_output);
+
+    if(!wm_toplevel_is_csd(toplevel) 
+            && !wm_toplevel_is_maximized(toplevel) 
+            && !wm_toplevel_is_fullscreen(toplevel)
+            && box.y - DECORATION_HEIGHT < output_geo.y){
+        wm_set_toplevel_position(toplevel, box.x, output_geo.y + DECORATION_HEIGHT);
+    }
+}
 

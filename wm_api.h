@@ -264,6 +264,8 @@ WM_API bool wm_toplevel_is_csd(wm_toplevel *t);
 WM_API bool wm_toplevel_wants_maximize(wm_toplevel *t);
 WM_API bool wm_toplevel_wants_fullscreen(wm_toplevel *t);
 
+wm_output *wm_get_wanted_fullscreen_output(wm_toplevel *);
+
 WM_API wm_buffer *wm_create_buffer(int width, int height, bool cpu_buffer);
 WM_API void wm_destroy_buffer(wm_buffer *b);
 
