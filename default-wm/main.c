@@ -99,7 +99,11 @@ bool on_pointer_move(wm_pointer_event_t *event){
     //that returns us the edges that the pointer is on
 
     if(edges != WM_RESIZE_EDGE_INVALID){
-		if(wm_toplevel_is_fullscreen(toplevel)){ //do not set any new icon if we have a fullscreen window
+		bool is_fullscreen = wm_toplevel_is_fullscreen(toplevel);
+
+		wm_unref_toplevel(toplevel);
+
+		if(is_fullscreen){ //do not set any new icon if we have a fullscreen window
 			return false;
 		}
 
