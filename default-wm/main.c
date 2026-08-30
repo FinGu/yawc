@@ -299,6 +299,8 @@ bool on_pointer_button(wm_pointer_event_t *event){
     else if((edges = wm_try_get_resize_grip(&node, &toplevel)) != WM_RESIZE_EDGE_INVALID){
         //in case it's not a buffer, it's the resize grip
         
+		wm_focus_toplevel(toplevel);
+
         data = wm_get_toplevel_state(toplevel);
 
         handle_pressed_gestures(event, data, toplevel, edges);

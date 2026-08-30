@@ -192,14 +192,6 @@ WM_API void wm_begin_move(wm_toplevel *t) {
     begin_move(t->toplevel);
 }
 
-WM_API void wm_begin_move_with_coords(wm_toplevel *t, double x, double y){
-	if(!t){
-        return;
-    }
-
-    begin_move(t->toplevel, x, y);
-}
-
 WM_API void wm_begin_resize(wm_toplevel *t, uint32_t edge_bits){
     if(!t){
         return;
@@ -374,7 +366,7 @@ WM_API void wm_hide_toplevel(wm_toplevel *t) {
 
     yawc_toplevel *toplevel = t->toplevel;
 
-	toplevel->server->reset_cursor_mode();
+	wm_cancel_window_op();
     wlr_scene_node_set_enabled(&toplevel->scene_tree->node, false);
 
     if(toplevel->foreign_handle){
@@ -686,9 +678,9 @@ WM_API void wm_set_toplevel_fullscreen(wm_toplevel *t, bool f){
 
     auto toplevel = t->toplevel;
 
-	/*if(f){
+	if(f){
     	toplevel->save_state();
-	}*/
+	}
 
     toplevel->fullscreen = f;
 
@@ -706,9 +698,9 @@ WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m){
 
     auto toplevel = t->toplevel;
 
-	/*if(m){
+	if(m){
     	toplevel->save_state();
-	}*/
+	}
 
     toplevel->maximized = m;
 
@@ -1051,29 +1043,22 @@ WM_API wm_toplevel *wm_get_toplevel_of_buffer(wm_buffer *b){
     return wm_create_toplevel(toplevel);   
 }
 
-WM_API wm_toplevel* wm_get_next_toplevel(struct wm_toplevel *cur){
+WM_API wm_toplevel* wm_get_topmost_toplevel(){
     struct wl_list *list_head = &wm_server->toplevels;
 
     if (wl_list_empty(list_head)) {
         return nullptr;
     }
 
-    if(!cur){
-        yawc_toplevel *toplevel;
+    yawc_toplevel *toplevel;
 
-        auto *out_toplevel = wl_container_of(list_head->next, toplevel, link);
-
-        return wm_create_toplevel(out_toplevel);
+	wl_list_for_each(toplevel, list_head, link){
+        if (!toplevel->hidden) {
+			return wm_create_toplevel(toplevel);
+        }
     }
 
-    auto *next_link = cur->toplevel->link.next;
-    if(next_link == list_head){
-		return nullptr;
-    }
-
-    auto *toplevel = wl_container_of(next_link, cur->toplevel, link);
-
-    return wm_create_toplevel(toplevel);
+	return nullptr;
 }
 
 WM_API wm_toplevel *wm_get_focused_toplevel(){

@@ -187,14 +187,13 @@ WM_API wm_output *wm_get_focused_output();
 WM_API wm_output *wm_get_output_of_toplevel(wm_toplevel *t);
 WM_API void wm_unref_output(wm_output *);
 
-WM_API wm_toplevel* wm_get_next_toplevel(struct wm_toplevel *cur);
+WM_API wm_toplevel* wm_get_topmost_toplevel();
 
 WM_API void wm_focus_toplevel(wm_toplevel *t);
 WM_API void wm_raise_toplevel(wm_toplevel *t);
 WM_API void wm_lower_toplevel(wm_toplevel *t);
 
 WM_API void wm_begin_move(wm_toplevel *t);
-WM_API void wm_begin_move_with_coords(wm_toplevel *t, double x, double y);
 
 //Full box ( considering decoration )
 WM_API void wm_begin_resize(wm_toplevel *t, uint32_t edge_bits);

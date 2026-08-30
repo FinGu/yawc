@@ -59,6 +59,7 @@ void on_toplevel_minimize_request(wm_toplevel_request_event_t *event){
 		return;
 	}
 
+	wm_hide_toplevel(toplevel);
 	hide_and_repair_focus(toplevel);
 }
 

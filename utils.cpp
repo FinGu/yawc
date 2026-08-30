@@ -93,6 +93,20 @@ struct yawc_toplevel *utils::previous_toplevel(struct yawc_server *server){
 
     return prev_toplevel;
 }
+/*
+ static bool
+xdg_toplevel_view_is_modal_dialog(struct view *view)
+{
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
+	struct wlr_xdg_dialog_v1 *dialog =
+		wlr_xdg_dialog_v1_try_from_wlr_xdg_toplevel(toplevel);
+	if (!dialog) {
+		return false;
+	}
+	return dialog->modal;
+}
+
+ */
 
 void utils::focus_toplevel(struct yawc_toplevel* toplevel)
 {

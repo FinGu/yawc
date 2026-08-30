@@ -103,17 +103,14 @@ void yawc_server::set_focus_surface(struct wlr_surface *surface) {
 }
 
 void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
-    if (this->cur_lock.lock && layer) {
-        return;
-    }
-
+	/*
 	struct wlr_surface *prev_surface = this->seat->keyboard_state.focused_surface;
     if (prev_surface) {
         struct wlr_xdg_toplevel* prev_toplevel = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
         if (prev_toplevel) {
             wlr_xdg_toplevel_set_activated(prev_toplevel, false);
         }
-    }
+    }*/
 
 	if (!layer && this->focused_layer) {
 		this->focused_layer = nullptr;
@@ -127,6 +124,10 @@ void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
 
 		return;
 	} else if (!layer) {
+		return;
+	}
+
+	if(this->cur_lock.lock){
 		return;
 	}
 

@@ -12,25 +12,9 @@ void begin_move(yawc_toplevel *toplevel)
 	
     server->grabbed_toplevel = toplevel;
     server->current_mouse_operation = MOVING;
-
-    int win_ax = 0.0, win_ay = 0.0;
-    if (toplevel->scene_tree) {
-        wlr_scene_node_coords(&toplevel->scene_tree->node, &win_ax, &win_ay);
-    } 
-
-    server->grabbed_mov_x = server->cursor->x - win_ax;
-    server->grabbed_mov_y = server->cursor->y - win_ay;
-}
-
-void begin_move(yawc_toplevel *toplevel, double x, double y)
-{
-    auto *server = toplevel->server;
-
-    server->grabbed_toplevel = toplevel;
-    server->current_mouse_operation = MOVING;
-
-    server->grabbed_mov_x = server->cursor->x - x;
-    server->grabbed_mov_y = server->cursor->y - y;
+  	
+    server->grabbed_mov_x = server->cursor->x - toplevel->scene_tree->node.x;
+    server->grabbed_mov_y = server->cursor->y - toplevel->scene_tree->node.y;
 }
 
 void begin_resize(yawc_toplevel *toplevel, uint32_t edges)
@@ -43,21 +27,16 @@ void begin_resize(yawc_toplevel *toplevel, uint32_t edges)
 
     struct wlr_box geo_box = toplevel->xdg_toplevel->base->geometry;
 
-    int win_ax = 0, win_ay = 0;
-    if (toplevel->scene_tree) {
-        wlr_scene_node_coords(&toplevel->scene_tree->node, &win_ax, &win_ay);
-    }
-
-    double border_x = win_ax + geo_box.x + ((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
-    double border_y = win_ay + geo_box.y + ((edges & WLR_EDGE_BOTTOM) ? geo_box.height : 0);
+    double border_x = toplevel->scene_tree->node.x + geo_box.x + ((edges & WLR_EDGE_RIGHT) ? geo_box.width : 0);
+    double border_y = toplevel->scene_tree->node.y + geo_box.y + ((edges & WLR_EDGE_BOTTOM) ? geo_box.height : 0);
 
     server->grabbed_res_x = server->cursor->x - border_x;
     server->grabbed_res_y = server->cursor->y - border_y;
 
     server->grabbed_geo_box = geo_box;
 
-    server->grabbed_geo_box.x += win_ax;
-    server->grabbed_geo_box.y += win_ay;
+    server->grabbed_geo_box.x += toplevel->scene_tree->node.x;
+    server->grabbed_geo_box.y += toplevel->scene_tree->node.y;
 }
 
 void yawc_toplevel::default_set_fullscreen(bool enable){

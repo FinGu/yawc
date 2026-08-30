@@ -94,6 +94,10 @@ wm_box_t unmaximize_window(wm_toplevel *toplevel){
 }
 
 void fullscreen_window(wm_toplevel *toplevel, wm_output *output){
+	if(wm_toplevel_is_fullscreen(toplevel)){
+		return;
+	}
+
 	bool should_unref = false;
 
 	if(!output){
@@ -113,6 +117,10 @@ void fullscreen_window(wm_toplevel *toplevel, wm_output *output){
 }
 
 void unfullscreen_window(wm_toplevel *toplevel){
+	if(!wm_toplevel_is_fullscreen(toplevel)){
+		return;
+	}
+
 	wm_box_t restore_geo = wm_get_last_toplevel_geometry(toplevel);
 
 	wm_set_toplevel_fullscreen(toplevel, false);
@@ -126,19 +134,19 @@ double get_time_diff(struct timespec end, struct timespec start) {
 
 void hide_and_repair_focus(wm_toplevel *toplevel){
 	//we only focus the next toplevel in case the one we're hiding is currently being used ( allow for show desktop button )
-	bool active = wm_toplevel_is_focused(toplevel);
+	bool was_focused = wm_toplevel_is_focused(toplevel);
 
 	wm_hide_toplevel(toplevel);
 
-	if(!active){
+	if(!was_focused){
 		return;
 	}
 
-	focus_next_toplevel(toplevel);
+	focus_next_toplevel();
 }
 
-void focus_next_toplevel(wm_toplevel *toplevel){
-	wm_toplevel *next = wm_get_next_toplevel(toplevel);
+void focus_next_toplevel(){
+	wm_toplevel *next = wm_get_topmost_toplevel();
 
 	if(!next){
 		return;	
