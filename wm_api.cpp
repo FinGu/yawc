@@ -979,7 +979,7 @@ WM_API wm_buffer *wm_attach_toplevel_buffer(wm_toplevel *toplevel, const char *n
     return old_buffer;
 }
 
-WM_API wm_buffer *wm_toplevel_unattach_buffer(wm_toplevel *toplevel, const char *name) {
+WM_API wm_buffer *wm_unattach_toplevel_buffer(wm_toplevel *toplevel, const char *name) {
     auto &buffers = toplevel->toplevel->buffers;
 
   	auto it = buffers.find(name);
