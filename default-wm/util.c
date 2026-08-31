@@ -14,7 +14,7 @@ void center_window(wm_toplevel *toplevel){
 
     wm_box_t output_geometry = wm_get_output_usable_area(cur_output);
 
-    int decoration = (wm_toplevel_is_csd(toplevel) ? 0 : DECORATION_HEIGHT);
+    int decoration = (wm_is_toplevel_csd(toplevel) ? 0 : DECORATION_HEIGHT);
 
     int target_x = output_geometry.x + (output_geometry.width - toplevel_geometry.width) / 2;
     int target_y = output_geometry.y + (output_geometry.height - toplevel_geometry.height + decoration) / 2;
@@ -51,7 +51,7 @@ wm_box_t maximize_window(wm_toplevel *toplevel){
 
     //here we could also remove the boxes created by the resize grip function
     
-    if(!wm_toplevel_is_csd(toplevel)){ //account for the decoration
+    if(!wm_is_toplevel_csd(toplevel)){ //account for the decoration
         output_geometry.height -= DECORATION_HEIGHT;
         output_geometry.y += DECORATION_HEIGHT;
     }
@@ -87,7 +87,7 @@ wm_box_t unmaximize_window(wm_toplevel *toplevel){
 }
 
 void fullscreen_window(wm_toplevel *toplevel, wm_output *output){
-	if(wm_toplevel_is_fullscreen(toplevel)){
+	if(wm_is_toplevel_fullscreen(toplevel)){
 		return;
 	}
 
@@ -110,7 +110,7 @@ void fullscreen_window(wm_toplevel *toplevel, wm_output *output){
 }
 
 void unfullscreen_window(wm_toplevel *toplevel){
-	if(!wm_toplevel_is_fullscreen(toplevel)){
+	if(!wm_is_toplevel_fullscreen(toplevel)){
 		return;
 	}
 
@@ -127,7 +127,7 @@ double get_time_diff(struct timespec end, struct timespec start) {
 
 void hide_and_repair_focus(wm_toplevel *toplevel){
 	//we only focus the next toplevel in case the one we're hiding is currently being used ( allow for show desktop button )
-	bool was_focused = wm_toplevel_is_focused(toplevel);
+	bool was_focused = wm_is_toplevel_focused(toplevel);
 
 	wm_hide_toplevel(toplevel);
 
@@ -162,9 +162,9 @@ void ensure_toplevel_decoration_visible(wm_toplevel *toplevel, wm_box_t box){
     wm_box_t output_geo = wm_get_output_geometry(toplevel_output);
     wm_unref_output(toplevel_output);
 
-    if(!wm_toplevel_is_csd(toplevel) 
-            && !wm_toplevel_is_maximized(toplevel) 
-            && !wm_toplevel_is_fullscreen(toplevel)
+    if(!wm_is_toplevel_csd(toplevel) 
+            && !wm_is_toplevel_maximized(toplevel) 
+            && !wm_is_toplevel_fullscreen(toplevel)
             && box.y - DECORATION_HEIGHT < output_geo.y){
         wm_set_toplevel_position(toplevel, box.x, output_geo.y + DECORATION_HEIGHT);
     }

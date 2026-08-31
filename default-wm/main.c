@@ -35,8 +35,10 @@ void on_toplevel_unmap(wm_toplevel *toplevel){
     struct window_data *wdata = wm_get_toplevel_state(toplevel);
 
     if(wdata){
+		wm_attach_toplevel_state(toplevel, NULL);
+		wm_unattach_toplevel_buffer(toplevel, DECORATION_NAME);
+		wm_destroy_toplevel_resize_grips(toplevel);
         free_window_data(wdata);
-        wm_toplevel_attach_state(toplevel, NULL);
     }
 }
 
@@ -67,7 +69,7 @@ void on_toplevel_map(wm_toplevel *toplevel){
 
     create_decoration(toplevel, wm_get_toplevel_geometry(toplevel));
 
-    if(wm_toplevel_wants_fullscreen(toplevel)){
+    if(wm_wants_toplevel_fullscreened(toplevel)){
 		wm_output *wanted_output = wm_get_wanted_fullscreen_output(toplevel);
 
 		fullscreen_window(toplevel, wanted_output);
@@ -75,7 +77,7 @@ void on_toplevel_map(wm_toplevel *toplevel){
 		if(wanted_output){
 			wm_unref_output(wanted_output);
 		} 
-    } else if(wm_toplevel_wants_maximize(toplevel)){
+    } else if(wm_wants_toplevel_maximized(toplevel)){
         maximize_window(toplevel);
     } else{
         center_window(toplevel);
@@ -99,7 +101,7 @@ bool on_pointer_move(wm_pointer_event_t *event){
     //that returns us the edges that the pointer is on
 
     if(edges != WM_RESIZE_EDGE_INVALID){
-		bool is_fullscreen = wm_toplevel_is_fullscreen(toplevel);
+		bool is_fullscreen = wm_is_toplevel_fullscreen(toplevel);
 
 		wm_unref_toplevel(toplevel);
 
@@ -131,7 +133,7 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
     }
 
     if(edges != WM_RESIZE_EDGE_INVALID){
-		if(wm_toplevel_is_fullscreen(toplevel)){ 
+		if(wm_is_toplevel_fullscreen(toplevel)){ 
 			//overwatch seemingly at some parts of the window is not on top of the resize buffers 
 			//a *proper* fix would be to actually stop drawing the resize grips when fullscreen, it's nonsensical to have to do so, so i won't
 			return;
@@ -166,7 +168,7 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
     data->last_click_x = (int)event->global_x;
     data->last_click_y = (int)event->global_y;
 
-	if(!wm_toplevel_is_maximized(toplevel)){
+	if(!wm_is_toplevel_maximized(toplevel)){
 		wm_begin_move(toplevel);
 		return;
 	}
@@ -212,7 +214,7 @@ void handle_border_gestures(wm_pointer_event_t *event, wm_toplevel *cur_toplevel
 
     wm_box_t new_geo = output_geo;
     
-    if(!wm_toplevel_is_csd(cur_toplevel)){
+    if(!wm_is_toplevel_csd(cur_toplevel)){
         new_geo.y += DECORATION_HEIGHT;
         new_geo.height -= DECORATION_HEIGHT;
     }

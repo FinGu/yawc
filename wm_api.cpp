@@ -593,6 +593,28 @@ WM_API void wm_configure_toplevel_resize_grips(
 
    toplevel->has_resize_grips = true;
 }
+
+
+WM_API void wm_destroy_toplevel_resize_grips(wm_toplevel *t) {
+	if (!t || !t->toplevel) {
+		return;
+	}
+
+	auto toplevel = t->toplevel;
+
+	if (!toplevel->has_resize_grips) {
+		return;
+	}
+
+	for (auto &grip : toplevel->resize_grips) {
+		scene_descriptor_destroy(grip);
+		wlr_scene_node_destroy(grip);
+		grip = nullptr;
+	}
+
+	toplevel->has_resize_grips = false;
+}
+
  
 WM_API wm_box_t wm_get_output_geometry(wm_output *o) {
     wm_box_t out = {0};
@@ -923,7 +945,7 @@ WM_API wm_buffer *wm_unattach_overlay(const char *name) {
 
 //returns the old buffer or nullptr
 //buf passed must be valid
-WM_API wm_buffer *wm_toplevel_attach_buffer(wm_toplevel *toplevel, const char *name, 
+WM_API wm_buffer *wm_attach_toplevel_buffer(wm_toplevel *toplevel, const char *name, 
         wm_buffer *buffer, int x, int y) {
     wm_buffer *old_buffer = nullptr;
     struct wlr_scene_buffer *cur_scene_buf;
@@ -1011,7 +1033,7 @@ WM_API bool wm_render_fn_to_buffer(wm_buffer *buffer, wm_render_cb cb, void *use
     return true;
 }
 
-WM_API void wm_toplevel_attach_state(wm_toplevel *toplevel, void *data){
+WM_API void wm_attach_toplevel_state(wm_toplevel *toplevel, void *data){
     if(!toplevel){
         return;
     }

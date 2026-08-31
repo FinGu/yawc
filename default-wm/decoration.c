@@ -57,7 +57,7 @@ wm_grip_visual grip_callback(wm_toplevel *toplevel,
 }
 
 wm_buffer *create_decoration(wm_toplevel *toplevel, wm_box_t geometry) {
-    if(wm_toplevel_is_csd(toplevel)){ //is client side decoration
+    if(wm_is_toplevel_csd(toplevel)){ //is client side decoration
         return NULL;
     }
 
@@ -75,7 +75,7 @@ wm_buffer *create_decoration(wm_toplevel *toplevel, wm_box_t geometry) {
         return NULL;
     }
 
-    wm_toplevel_attach_buffer(toplevel, DECORATION_NAME, buffer, geometry.x, geometry.y);
+    wm_attach_toplevel_buffer(toplevel, DECORATION_NAME, buffer, geometry.x, geometry.y);
 
     wm_configure_toplevel_resize_grips(toplevel, 0, -DECORATION_HEIGHT, 
             geometry.width, old_height + DECORATION_HEIGHT, 
@@ -99,7 +99,7 @@ wm_buffer *create_decoration(wm_toplevel *toplevel, wm_box_t geometry) {
 
     struct window_data *wdata = alloc_window_data(buffer);
     
-    wm_toplevel_attach_state(toplevel, wdata); //we save the state
+    wm_attach_toplevel_state(toplevel, wdata); //we save the state
 
     wm_render_fn_to_buffer(buffer, draw_decoration, wdata);
 

@@ -173,7 +173,7 @@ WM_API wm_toplevel **wm_get_toplevels(size_t *size);
 WM_API void wm_unref_toplevels(wm_toplevel **t, size_t amnt);
 
 WM_API wm_toplevel *wm_get_focused_toplevel(void);
-WM_API bool wm_toplevel_is_focused(wm_toplevel *);
+WM_API bool wm_is_toplevel_focused(wm_toplevel *);
 
 WM_API void wm_unref_toplevel(wm_toplevel *);
 
@@ -249,20 +249,24 @@ WM_API void wm_configure_toplevel_resize_grips(
     void *user_data
 );
 
+WM_API void wm_destroy_toplevel_resize_grips(
+    wm_toplevel *t
+);
+
 WM_API const char *wm_get_toplevel_title(wm_toplevel *t);
 WM_API uint64_t wm_get_toplevel_id(wm_toplevel *t);
 
 WM_API void wm_set_toplevel_fullscreen(wm_toplevel *t, bool f);
 WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m);
 
-WM_API bool wm_toplevel_is_fullscreen(wm_toplevel *t);
-WM_API bool wm_toplevel_is_maximized(wm_toplevel *t);
-WM_API bool wm_toplevel_is_hidden(wm_toplevel *t);
-WM_API bool wm_toplevel_is_mapped(wm_toplevel *t);
-WM_API bool wm_toplevel_is_csd(wm_toplevel *t);
+WM_API bool wm_is_toplevel_fullscreen(wm_toplevel *t);
+WM_API bool wm_is_toplevel_maximized(wm_toplevel *t);
+WM_API bool wm_is_toplevel_hidden(wm_toplevel *t);
+WM_API bool wm_is_toplevel_mapped(wm_toplevel *t);
+WM_API bool wm_is_toplevel_csd(wm_toplevel *t);
 
-WM_API bool wm_toplevel_wants_maximize(wm_toplevel *t);
-WM_API bool wm_toplevel_wants_fullscreen(wm_toplevel *t);
+WM_API bool wm_wants_toplevel_maximized(wm_toplevel *t);
+WM_API bool wm_wants_toplevel_fullscreened(wm_toplevel *t);
 
 wm_output *wm_get_wanted_fullscreen_output(wm_toplevel *);
 
@@ -301,12 +305,12 @@ WM_API void wm_set_buffer_geometry(wm_buffer *, wm_box_t geo);
 WM_API wm_buffer *wm_attach_overlay(const char *name, wm_buffer *buffer, int x, int y);
 WM_API wm_buffer *wm_unattach_overlay(const char *name);
 
-WM_API wm_buffer *wm_toplevel_attach_buffer(wm_toplevel *toplevel, 
+WM_API wm_buffer *wm_attach_toplevel_buffer(wm_toplevel *toplevel, 
         const char *name, wm_buffer *buffer, int x, int y);
 
-WM_API wm_buffer *wm_toplevel_unattach_buffer(wm_toplevel *toplevel, const char *name);
+WM_API wm_buffer *wm_unattach_toplevel_buffer(wm_toplevel *toplevel, const char *name);
 
-WM_API void wm_toplevel_attach_state(wm_toplevel *toplevel, void *data);
+WM_API void wm_attach_toplevel_state(wm_toplevel *toplevel, void *data);
 
 WM_API void *wm_get_toplevel_state(wm_toplevel *toplevel);
 

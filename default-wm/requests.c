@@ -6,11 +6,11 @@
 void on_toplevel_move_request(wm_toplevel_request_event_t *event){
 	wm_toplevel *toplevel = event->toplevel;
 
-	if(wm_toplevel_is_fullscreen(toplevel)){
+	if(wm_is_toplevel_fullscreen(toplevel)){
 		return;
 	}
 
-	if(wm_toplevel_is_maximized(toplevel)){
+	if(wm_is_toplevel_maximized(toplevel)){
 		unmaximize_window(toplevel);
 
 		wm_begin_move(toplevel);
