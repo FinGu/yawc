@@ -23,7 +23,7 @@ void on_toplevel_geometry(wm_toplevel *toplevel, wm_box_t last_geo, wm_box_t new
             last_geo.x, last_geo.y, last_geo.width, last_geo.height, 
             new_box.x, new_box.y, new_box.width, new_box.height);*/
 
-	//ensure_toplevel_decoration_visible(toplevel, new_box);
+	ensure_toplevel_decoration_visible(toplevel, new_box);
     create_decoration(toplevel, new_box);
 }
 
@@ -139,7 +139,7 @@ void handle_pressed_gestures(wm_pointer_event_t *event, struct window_data *data
 			return;
 		}
 
-		//ensure_toplevel_decoration_visible(toplevel, wm_get_toplevel_geometry(toplevel));
+		ensure_toplevel_decoration_visible(toplevel, wm_get_toplevel_geometry(toplevel));
 
         wm_begin_resize(toplevel, edges);
         return;
