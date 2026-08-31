@@ -54,6 +54,11 @@ void on_drag_destroy(struct wl_listener *listener, void *data)
 
 	wlr_scene_node_set_enabled(&server->drag.icons->node, false);
 
+	if(server->cur_lock.lock){
+		server->set_focus_surface(server->cur_lock.focused);
+		return;
+	}
+
 	auto *last = utils::previous_toplevel(server);
 
 	utils::focus_toplevel(last);
@@ -62,7 +67,7 @@ void on_drag_destroy(struct wl_listener *listener, void *data)
 void yawc_server::setup_drag()
 {
 	this->drag.running = false;
-	this->drag.icons = wlr_scene_tree_create(&this->scene->tree);
+	this->drag.icons = wlr_scene_tree_create(this->layers.overlay);
 	wlr_scene_node_set_enabled(&this->drag.icons->node, false);
 
 	this->drag.events.request.notify = on_drag_request;
