@@ -733,7 +733,7 @@ WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m){
     wlr_xdg_toplevel_set_maximized(toplevel->xdg_toplevel, m);
 }
 
-WM_API bool wm_toplevel_is_fullscreen(wm_toplevel *t){
+WM_API bool wm_is_toplevel_fullscreen(wm_toplevel *t){
     if(!t){
         return false;
     }
@@ -741,7 +741,7 @@ WM_API bool wm_toplevel_is_fullscreen(wm_toplevel *t){
     return t->toplevel->fullscreen;
 }
 
-WM_API bool wm_toplevel_is_maximized(wm_toplevel *t) {
+WM_API bool wm_is_toplevel_maximized(wm_toplevel *t) {
     if(!t){
         return false;
     }
@@ -750,7 +750,7 @@ WM_API bool wm_toplevel_is_maximized(wm_toplevel *t) {
 }
 
 
-WM_API bool wm_toplevel_is_hidden(wm_toplevel *t){
+WM_API bool wm_is_toplevel_hidden(wm_toplevel *t){
     if(!t){
         return false;
     }
@@ -758,7 +758,7 @@ WM_API bool wm_toplevel_is_hidden(wm_toplevel *t){
     return t->toplevel->hidden;
 }
 
-WM_API bool wm_toplevel_is_mapped(wm_toplevel *t) {
+WM_API bool wm_is_toplevel_mapped(wm_toplevel *t) {
     if(!t || !t->toplevel){
         return false;
     }
@@ -766,7 +766,7 @@ WM_API bool wm_toplevel_is_mapped(wm_toplevel *t) {
     return t->toplevel->mapped;
 }
 
-WM_API bool wm_toplevel_is_csd(wm_toplevel *t) {
+WM_API bool wm_is_toplevel_csd(wm_toplevel *t) {
     if(!t || !t->toplevel){
         return true;
     }
@@ -776,7 +776,7 @@ WM_API bool wm_toplevel_is_csd(wm_toplevel *t) {
     return !decoration || !decoration->is_ssd;
 }
 
-WM_API bool wm_toplevel_wants_maximize(wm_toplevel *t){
+WM_API bool wm_wants_toplevel_maximized(wm_toplevel *t){
     if(!t || !t->toplevel){
         return false;
     }
@@ -790,7 +790,7 @@ WM_API bool wm_toplevel_wants_maximize(wm_toplevel *t){
     return toplevel->xdg_toplevel->requested.maximized;
 }
 
-WM_API bool wm_toplevel_wants_fullscreen(wm_toplevel *t){
+WM_API bool wm_wants_toplevel_fullscreened(wm_toplevel *t){
     if(!t || !t->toplevel){
         return false;
     }
@@ -1119,7 +1119,7 @@ WM_API wm_toplevel *wm_get_focused_toplevel(){
     return wm_create_toplevel(out_toplevel);
 }
 
-WM_API bool wm_toplevel_is_focused(wm_toplevel *t){
+WM_API bool wm_is_toplevel_focused(wm_toplevel *t){
 	yawc_toplevel *toplevel;
 
 	struct wl_list *list_head = &wm_server->toplevels;
