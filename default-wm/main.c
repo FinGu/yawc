@@ -257,7 +257,7 @@ bool on_pointer_button(wm_pointer_event_t *event){
         if(event->pressed){
             wm_focus_toplevel(toplevel);
         } else{
-            pass_event_back = false;
+            pass_event_back = true;
         }
 
         handle_border_gestures(event, toplevel);
