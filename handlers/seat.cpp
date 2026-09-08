@@ -102,25 +102,29 @@ void yawc_server::set_focus_surface(struct wlr_surface *surface) {
 	}
 }
 
-void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
-	/*
-	struct wlr_surface *prev_surface = this->seat->keyboard_state.focused_surface;
-    if (prev_surface) {
-        struct wlr_xdg_toplevel* prev_toplevel = wlr_xdg_toplevel_try_from_wlr_surface(prev_surface);
-        if (prev_toplevel) {
-            wlr_xdg_toplevel_set_activated(prev_toplevel, false);
-        }
-    }*/
+void handle_last_focused_surface_destroy(struct wl_listener *listener, void *data) {
+	yawc_server *server = wl_container_of(listener, server, last_focused_surface_listener_destroy);
 
+	wl_list_remove(&server->last_focused_surface_listener_destroy.link);
+	server->last_focused_surface_from_layer = nullptr;
+}
+
+void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
 	if (!layer && this->focused_layer) {
 		this->focused_layer = nullptr;
-        wlr_seat_keyboard_notify_clear_focus(this->seat);
-		if (!wl_list_empty(&this->toplevels)) {
-            struct yawc_toplevel *previous = wl_container_of(this->toplevels.next, previous, link);
-            if (previous) {
-                utils::focus_toplevel(previous);
-            }
-        }
+
+		struct wlr_surface *previous =
+    		this->last_focused_surface_from_layer;
+
+		this->last_focused_surface_from_layer = nullptr;
+
+		if (previous && previous->mapped) {
+    		this->set_focus_surface(previous);
+		} else {
+    		wlr_seat_keyboard_notify_clear_focus(this->seat);
+		}
+
+		this->has_exclusive_layer = false;
 
 		return;
 	} else if (!layer) {
@@ -140,6 +144,13 @@ void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
 	if (this->focused_layer == layer) {
 		return;
 	}
+
+    if (!this->focused_layer) {
+        this->last_focused_surface_from_layer =
+            this->seat->keyboard_state.focused_surface;
+		wl_signal_add(&this->last_focused_surface_from_layer->events.destroy, 
+				&this->last_focused_surface_listener_destroy);
+    }
 
 	this->set_focus_surface(layer->surface);
 	this->focused_layer = layer;

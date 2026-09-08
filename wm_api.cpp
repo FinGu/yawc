@@ -366,15 +366,12 @@ WM_API void wm_hide_toplevel(wm_toplevel *t) {
 
     yawc_toplevel *toplevel = t->toplevel;
 
-	wm_cancel_window_op();
     wlr_scene_node_set_enabled(&toplevel->scene_tree->node, false);
 
+	toplevel->activate(false);
     if(toplevel->foreign_handle){
         wlr_foreign_toplevel_handle_v1_set_minimized(toplevel->foreign_handle, true);
-        wlr_foreign_toplevel_handle_v1_set_activated(toplevel->foreign_handle, false);
     }
-	
-	wlr_xdg_toplevel_set_activated(toplevel->xdg_toplevel, false);
 
 	/*
     auto *tmp_toplevel = wm_get_focused_toplevel();
