@@ -102,13 +102,6 @@ void yawc_server::set_focus_surface(struct wlr_surface *surface) {
 	}
 }
 
-void handle_last_focused_surface_destroy(struct wl_listener *listener, void *data) {
-	yawc_server *server = wl_container_of(listener, server, last_focused_surface_listener_destroy);
-
-	wl_list_remove(&server->last_focused_surface_listener_destroy.link);
-	server->last_focused_surface_from_layer = nullptr;
-}
-
 void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
 	if (!layer && this->focused_layer) {
 		this->focused_layer = nullptr;
@@ -118,7 +111,7 @@ void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
 
 		this->last_focused_surface_from_layer = nullptr;
 
-		if (previous && previous->mapped) {
+		if (previous) {
     		this->set_focus_surface(previous);
 		} else {
     		wlr_seat_keyboard_notify_clear_focus(this->seat);
@@ -148,8 +141,6 @@ void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
     if (!this->focused_layer) {
         this->last_focused_surface_from_layer =
             this->seat->keyboard_state.focused_surface;
-		wl_signal_add(&this->last_focused_surface_from_layer->events.destroy, 
-				&this->last_focused_surface_listener_destroy);
     }
 
 	this->set_focus_surface(layer->surface);
