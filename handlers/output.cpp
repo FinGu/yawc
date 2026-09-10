@@ -108,7 +108,7 @@ bool apply_output_config(struct yawc_server *server,
         wlr_scene_output_layout_add_output(server->scene_layout, olo,
             youtput->scene_output);
     } else{
-		reorganize_toplevels(server, output);
+		//reorganize_toplevels(server, output);
 
         wlr_output_layout_remove(output_layout, output);
     }
@@ -323,7 +323,7 @@ void destroy_output(struct wl_listener *listener, void *data){
 
     update_output_manager_config(server);
 
-    reorganize_toplevels(server, nullptr);
+    //reorganize_toplevels(server, nullptr);
 }
 
 void handle_output_power_manager_set_mode(struct wl_listener *listener,

@@ -287,8 +287,6 @@ public:
     void set_focus_layer(struct wlr_layer_surface_v1 *layer);
     void set_focus_surface(struct wlr_surface *surface);
 
-	wlr_surface *last_focused_surface_from_layer = nullptr;
-
     struct wl_listener 
 		last_focused_surface_listener_destroy,
 		new_output_listener, 

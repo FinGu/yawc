@@ -90,6 +90,7 @@ void yawc_server::setup_seat()
     wl_signal_add(&this->seat->events.request_set_primary_selection, &this->on_request_set_primary_selection);
 
 	this->setup_drag();
+
 }
 
 void yawc_server::set_focus_surface(struct wlr_surface *surface) {
@@ -106,16 +107,7 @@ void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
 	if (!layer && this->focused_layer) {
 		this->focused_layer = nullptr;
 
-		struct wlr_surface *previous =
-    		this->last_focused_surface_from_layer;
-
-		this->last_focused_surface_from_layer = nullptr;
-
-		if (previous) {
-    		this->set_focus_surface(previous);
-		} else {
-    		wlr_seat_keyboard_notify_clear_focus(this->seat);
-		}
+    	wlr_seat_keyboard_notify_clear_focus(this->seat);
 
 		this->has_exclusive_layer = false;
 
@@ -138,12 +130,7 @@ void yawc_server::set_focus_layer(struct wlr_layer_surface_v1 *layer) {
 		return;
 	}
 
-    if (!this->focused_layer) {
-        this->last_focused_surface_from_layer =
-            this->seat->keyboard_state.focused_surface;
-    }
-
-	this->set_focus_surface(layer->surface);
+  	this->set_focus_surface(layer->surface);
 	this->focused_layer = layer;
 }
 

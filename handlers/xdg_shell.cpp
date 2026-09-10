@@ -169,6 +169,7 @@ void handle_toplevel_destroy(struct wl_listener* listener, void* data)
     wl_list_remove(&toplevel->events.destroy.link);
 
     toplevel->scene_tree = nullptr;
+	toplevel->decoration = nullptr;
 
     delete toplevel;
 }

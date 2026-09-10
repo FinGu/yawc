@@ -7,7 +7,9 @@ void toplevel_decoration_destroy(struct wl_listener *listener, void *data){
     wl_list_remove(&decoration->destroy.link);
     wl_list_remove(&decoration->request_mode.link);
 
-	decoration->toplevel->decoration = nullptr;
+	if(decoration->toplevel){
+		decoration->toplevel->decoration = nullptr;
+	}
 
     delete decoration;
 }
