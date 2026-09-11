@@ -1,6 +1,7 @@
 #include "requests.h"
 
 #include "util.h"
+#include "decoration.h"
 #include "wm_api.h"
 
 void on_toplevel_move_request(wm_toplevel_request_event_t *event){
@@ -46,7 +47,8 @@ void on_toplevel_fullscreen_request(wm_toplevel_request_event_t *event){
 	if(payload->state){
 		fullscreen_window(toplevel, payload->requested_output);
 	} else{
-		unfullscreen_window(toplevel);
+		wm_box_t out = unfullscreen_window(toplevel);
+		create_decoration(toplevel, out);
 	}
 }
 

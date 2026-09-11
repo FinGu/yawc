@@ -109,9 +109,9 @@ void fullscreen_window(wm_toplevel *toplevel, wm_output *output){
 	}
 }
 
-void unfullscreen_window(wm_toplevel *toplevel){
+wm_box_t unfullscreen_window(wm_toplevel *toplevel){
 	if(!wm_is_toplevel_fullscreen(toplevel)){
-		return;
+		return (wm_box_t){};
 	}
 
 	wm_box_t restore_geo = wm_get_last_toplevel_geometry(toplevel);
@@ -119,6 +119,8 @@ void unfullscreen_window(wm_toplevel *toplevel){
 	wm_set_toplevel_fullscreen(toplevel, false);
 	wm_set_toplevel_geometry(toplevel, restore_geo);
 	wm_change_toplevel_layer(toplevel, WM_LAYER_NORMAL);
+
+	return restore_geo;
 }
 
 double get_time_diff(struct timespec end, struct timespec start) {
