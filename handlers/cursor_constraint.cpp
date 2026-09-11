@@ -26,14 +26,15 @@ void check_constraint_region(struct yawc_server *sv){
 
 	pixman_region32_t *region = &constraint->region;
 
-    auto *xdg_toplevel = wlr_xdg_toplevel_try_from_wlr_surface(constraint->surface);
+	yawc_toplevel *toplevel = utils::get_toplevel_from_wlr_surface(constraint->surface);
 
-    if(!xdg_toplevel){
+    if(!toplevel){
         return;
     }
 
     int gx, gy;
-    struct wlr_scene_tree *tree = (struct wlr_scene_tree *)xdg_toplevel->base->data;
+
+    struct wlr_scene_tree *tree = toplevel->scene_tree;
     wlr_scene_node_coords(&tree->node, &gx, &gy);
 
     double local_cursor_x = sv->cursor->x - gx; 

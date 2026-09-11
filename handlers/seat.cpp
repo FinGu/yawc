@@ -3,6 +3,40 @@
 #include "../toplevel.hpp"
 #include "../utils.hpp"
 
+void handle_focus_change(struct wl_listener* listener, void* data){
+    struct yawc_server* server = wl_container_of(listener, server, on_pointer_focus_change);
+
+    struct wlr_seat_keyboard_focus_change_event* event = reinterpret_cast<struct wlr_seat_keyboard_focus_change_event*>(data);
+
+	auto old_toplevel = utils::get_toplevel_from_wlr_surface(event->old_surface);
+	auto new_toplevel = utils::get_toplevel_from_wlr_surface(event->new_surface);
+
+	/*if(event->new_surface && !new_toplevel){ //we dont change any focuses if we're 'moving' to another type of surface
+		return;
+	}*/
+
+	if(old_toplevel){
+		if(old_toplevel->mapped && old_toplevel->fullscreen){
+			wlr_scene_node_reparent(&old_toplevel->scene_tree->node, server->layers.normal);
+		}
+		old_toplevel->activate(false);
+	}
+
+	if(!new_toplevel){
+		return;
+	}
+
+	if(new_toplevel->scene_tree){
+		wlr_scene_node_raise_to_top(&new_toplevel->scene_tree->node);
+
+        if(new_toplevel->fullscreen){
+            wlr_scene_node_reparent(&new_toplevel->scene_tree->node, server->layers.fullscreen);
+        }
+	}
+
+	new_toplevel->activate(true);
+}
+
 void handle_pointer_focus_change(struct wl_listener* listener, void* data){
     struct yawc_server* server = wl_container_of(listener, server, on_pointer_focus_change);
 
@@ -50,6 +84,7 @@ void handle_request_set_primary_selection(struct wl_listener *listener, void *da
 void handle_seat_destroy(struct wl_listener *listener, void *data){
 	struct yawc_server *server = wl_container_of(listener, server, seat_destroy);
 
+	wl_list_remove(&server->on_focus_change.link);
 	wl_list_remove(&server->on_pointer_focus_change.link);
 	wl_list_remove(&server->on_request_cursor.link);
 	wl_list_remove(&server->on_request_set_selection.link);
@@ -73,6 +108,9 @@ void yawc_server::setup_seat()
 
 	this->seat_destroy.notify = handle_seat_destroy;
 	wl_signal_add(&this->seat->events.destroy, &this->seat_destroy);
+
+	this->on_focus_change.notify = handle_focus_change;
+	wl_signal_add(&this->seat->keyboard_state.events.focus_change, &this->on_focus_change);
 
     this->on_pointer_focus_change.notify = handle_pointer_focus_change;
     wl_signal_add(&this->seat->pointer_state.events.focus_change, &this->on_pointer_focus_change);

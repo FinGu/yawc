@@ -480,7 +480,7 @@ yawc_toplevel *create_toplevel_xdg(yawc_server *server, struct wlr_xdg_toplevel 
         return nullptr;
     }
 
-    xdg_toplevel->base->data = toplevel->scene_tree;
+    xdg_toplevel->base->data = toplevel;
 
     toplevel->has_resize_grips = false;
     

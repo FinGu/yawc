@@ -40,4 +40,6 @@ namespace utils {
     struct wlr_box get_usable_area_of_output(struct yawc_output *output);
 
     uint64_t hash_file_fnv1a(const std::string& path);
+
+	yawc_toplevel* get_toplevel_from_wlr_surface(wlr_surface *surface);
 } // namespace utils

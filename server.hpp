@@ -288,7 +288,6 @@ public:
     void set_focus_surface(struct wlr_surface *surface);
 
     struct wl_listener 
-		last_focused_surface_listener_destroy,
 		new_output_listener, 
 		new_xdg_toplevel_listener,
         xdg_toplevel_listener_destroy,
@@ -297,7 +296,9 @@ public:
         decoration_manager_destroy,
         new_input_listener, pointer_motion_listener,
         pointer_motion_absolute_listener, cursor_frame_listener,
-        cursor_button_listener, on_pointer_focus_change,
+        cursor_button_listener, 
+		on_focus_change,
+		on_pointer_focus_change,
         on_request_cursor,
         on_request_set_selection,
         on_request_set_primary_selection,

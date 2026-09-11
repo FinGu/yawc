@@ -108,50 +108,20 @@ xdg_toplevel_view_is_modal_dialog(struct view *view)
 
  */
 
-void utils::focus_toplevel(struct yawc_toplevel* toplevel)
-{
+void utils::focus_toplevel(struct yawc_toplevel* toplevel){
     if (toplevel == nullptr) {
         return;
     }
 
     struct yawc_server* server = toplevel->server;
 
-    struct wlr_seat* seat = server->seat;
-    struct wlr_surface* prev_surface = seat->keyboard_state.focused_surface;
-
     struct wlr_surface* surface = toplevel->xdg_toplevel->base->surface;
 
-    if (prev_surface == surface) {
-        return;
-    }
-
     server->constrain_cursor(nullptr);
-
-    if (!wl_list_empty(&server->toplevels)) {
-        struct yawc_toplevel *prev_toplevel = wl_container_of(server->toplevels.next, prev_toplevel, link);
-        
-        if (prev_toplevel != toplevel && prev_toplevel->mapped) {
-            if(prev_toplevel->fullscreen){ //the idea is simple, if is a fullscreen window, alt tab should let other windows stack on top 
-                wlr_scene_node_reparent(&prev_toplevel->scene_tree->node, server->layers.normal);
-            } 
-
-            prev_toplevel->activate(false);
-        }
-    }
-
-    if(toplevel->scene_tree){
-        wlr_scene_node_raise_to_top(&toplevel->scene_tree->node);
-
-        if(toplevel->fullscreen){
-            wlr_scene_node_reparent(&toplevel->scene_tree->node, server->layers.fullscreen);
-        }
-    }
-
+    
     wl_list_remove(&toplevel->link);
     wl_list_insert(&server->toplevels, &toplevel->link);
     
-    toplevel->activate(true);
-
     server->set_focus_layer(nullptr);
     server->set_focus_surface(surface);
 
@@ -315,4 +285,20 @@ uint64_t utils::hash_file_fnv1a(const std::string& path) {
         }
     }
     return hash;
+}
+
+yawc_toplevel* utils::get_toplevel_from_wlr_surface(wlr_surface *surface){
+	if(!surface){
+		return nullptr;
+	}
+
+	auto *xdg_toplevel = wlr_xdg_toplevel_try_from_wlr_surface(surface);
+
+    if(!xdg_toplevel){
+        return nullptr;
+    }
+
+	yawc_toplevel *toplevel = (yawc_toplevel*)xdg_toplevel->base->data;
+
+	return toplevel;
 }
