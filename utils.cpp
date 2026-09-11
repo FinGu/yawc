@@ -117,18 +117,11 @@ void utils::focus_toplevel(struct yawc_toplevel* toplevel){
 
     struct wlr_surface* surface = toplevel->xdg_toplevel->base->surface;
 
-    server->constrain_cursor(nullptr);
-    
     wl_list_remove(&toplevel->link);
     wl_list_insert(&server->toplevels, &toplevel->link);
     
     server->set_focus_layer(nullptr);
     server->set_focus_surface(surface);
-
-    struct wlr_pointer_constraint_v1 *req = wlr_pointer_constraints_v1_constraint_for_surface(
-        server->pointer_constraints, surface, server->seat);
-
-    server->constrain_cursor(req);
 }
 
 bool utils::toplevel_not_empty(struct yawc_toplevel* toplevel)

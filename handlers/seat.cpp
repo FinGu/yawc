@@ -4,12 +4,14 @@
 #include "../utils.hpp"
 
 void handle_focus_change(struct wl_listener* listener, void* data){
-    struct yawc_server* server = wl_container_of(listener, server, on_pointer_focus_change);
+    struct yawc_server* server = wl_container_of(listener, server, on_focus_change);
 
     struct wlr_seat_keyboard_focus_change_event* event = reinterpret_cast<struct wlr_seat_keyboard_focus_change_event*>(data);
 
+	auto new_surface = event->new_surface;
+
 	auto old_toplevel = utils::get_toplevel_from_wlr_surface(event->old_surface);
-	auto new_toplevel = utils::get_toplevel_from_wlr_surface(event->new_surface);
+	auto new_toplevel = utils::get_toplevel_from_wlr_surface(new_surface);
 
 	/*if(event->new_surface && !new_toplevel){ //we dont change any focuses if we're 'moving' to another type of surface
 		return;
@@ -26,6 +28,8 @@ void handle_focus_change(struct wl_listener* listener, void* data){
 		return;
 	}
 
+	server->constrain_cursor(nullptr);
+
 	if(new_toplevel->scene_tree){
 		wlr_scene_node_raise_to_top(&new_toplevel->scene_tree->node);
 
@@ -35,6 +39,12 @@ void handle_focus_change(struct wl_listener* listener, void* data){
 	}
 
 	new_toplevel->activate(true);
+
+	struct wlr_pointer_constraint_v1 *req = wlr_pointer_constraints_v1_constraint_for_surface(
+        server->pointer_constraints, new_surface, server->seat);
+
+    server->constrain_cursor(req);
+
 }
 
 void handle_pointer_focus_change(struct wl_listener* listener, void* data){
