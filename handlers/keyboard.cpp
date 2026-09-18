@@ -147,19 +147,29 @@ yawc_keyboard *yawc_server::handle_keyboard(struct wlr_input_device *device){
 }
 
 void yawc_server::load_keyboard_cfg(yawc_keyboard *keyboard){
+	bool is_enabled = true;
     yawc_keyboard_config config;
 
     auto device = &keyboard->wlr_keyboard->base;
 
 	if(this->config->input_configs.count(device->name)){
-		config = std::get<yawc_keyboard_config>(this->config->input_configs[device->name]);
+		auto tmp_cfg = this->config->input_configs[device->name];
+
+		is_enabled = tmp_cfg.enabled;
+
+		config = tmp_cfg.keyboard_config;
 	} else{
 		config = this->config->default_keyboard_config;
 	}
 
-    if(!config.enabled){
-        return;
-    }
+	if(wlr_input_device_is_libinput(device)){
+		struct libinput_device *libinput_handle = wlr_libinput_get_device_handle(device);
+
+		libinput_device_config_send_events_set_mode(
+    		libinput_handle,
+    		is_enabled ? LIBINPUT_CONFIG_SEND_EVENTS_ENABLED : LIBINPUT_CONFIG_SEND_EVENTS_DISABLED
+		);
+	}
 
     struct xkb_rule_names rules; 
 

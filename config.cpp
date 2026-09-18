@@ -9,10 +9,16 @@
 #include <ranges>
 #include <string>
 
-yawc_keyboard_config parse_keyboard_config(toml::table &table){
-    yawc_keyboard_config out;
+yawc_input_config parse_common(toml::table &table){
+    yawc_input_config out;
 
     out.enabled = table["enabled"].value_or(true);
+
+    return out;
+}
+
+yawc_keyboard_config parse_keyboard_config(toml::table &table){
+    yawc_keyboard_config out;
 
     out.xkb_layout = table["xkb_layout"].value<std::string>();
     out.xkb_variant = table["xkb_variant"].value<std::string>();
@@ -28,8 +34,6 @@ yawc_keyboard_config parse_keyboard_config(toml::table &table){
 
 yawc_pointer_config parse_pointer_config(toml::table &table){
     yawc_pointer_config out;
-
-    out.enabled = table["enabled"].value_or(true);
 
     out.tap_to_click = table["tap_to_click"].value<bool>();
     out.tap_and_drag = table["tap_and_drag"].value<bool>();
@@ -77,14 +81,6 @@ constexpr std::array<std::string_view, 4> reserved_tables = {
     "environment",
     "keybinds",
 };
-
-yawc_input_config attempt_keyboard_and_pointer(toml::table &table){
-    if (table.contains("xkb_layout") || table.contains("xkb_options") || table.contains("repeat_rate")) {
-        return parse_keyboard_config(table);
-    }
-    
-    return parse_pointer_config(table);
-}
 
 void parse_keybind(struct yawc_bind_node *bind, std::string_view key, std::string_view value){
     bool is_global_shortcut = value.contains(':');
@@ -202,19 +198,18 @@ void yawc_config::load_tables(toml::table &table){
 
         const char *name = key.str().data(); 
 
-        if(table["type"] == "keyboard"){
-            this->input_configs[name] = parse_keyboard_config(table);
-        } else if(table["type"] == "pointer"){
-            this->input_configs[name] = parse_pointer_config(table);
-        } else{
-            this->input_configs[name] = attempt_keyboard_and_pointer(table);
-        }
+		auto new_input_config = parse_common(table);
+
+        new_input_config.keyboard_config = parse_keyboard_config(table);
+        new_input_config.pointer_config = parse_pointer_config(table);
+
+		this->input_configs[name] = new_input_config;
     }
 }
 
 bool yawc_config::load(std::string path){
-    default_pointer_config = {.enabled = true};
-    default_keyboard_config = {.enabled = true};
+    default_pointer_config = {};
+    default_keyboard_config = {};
     input_configs.clear();
     autostart_cmds.clear();
 

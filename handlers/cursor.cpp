@@ -316,19 +316,20 @@ yawc_pointer *yawc_server::handle_pointer(struct wlr_input_device *device){
 }
 
 void yawc_server::load_pointer_cfg(yawc_pointer *pointer){
+	bool is_enabled = true;
     yawc_pointer_config config;
 
     auto device = pointer->wlr_device;
 
 	if(this->config->input_configs.count(device->name)){
-		config = std::get<yawc_pointer_config>(this->config->input_configs[device->name]);
+		auto tmp_cfg = this->config->input_configs[device->name];
+
+		is_enabled = tmp_cfg.enabled;
+
+		config = tmp_cfg.pointer_config;
 	} else{
 		config = this->config->default_pointer_config;
 	}
-
-    if(!config.enabled){
-        return;
-    }
 
     if (!wlr_input_device_is_libinput(device)) {
         wlr_cursor_attach_input_device(this->cursor, device);
@@ -336,6 +337,11 @@ void yawc_server::load_pointer_cfg(yawc_pointer *pointer){
     }
 
     struct libinput_device *libinput_handle = wlr_libinput_get_device_handle(device);
+
+	libinput_device_config_send_events_set_mode(
+    	libinput_handle,
+    	is_enabled ? LIBINPUT_CONFIG_SEND_EVENTS_ENABLED : LIBINPUT_CONFIG_SEND_EVENTS_DISABLED
+	);
 
     if (config.accel_profile.has_value()) {
         std::string name = *config.accel_profile;

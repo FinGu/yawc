@@ -10,8 +10,6 @@
 #include <toml++/toml.hpp>
 
 struct yawc_pointer_config{
-    bool enabled;
-
     std::optional<bool> tap_to_click;
     std::optional<bool> tap_and_drag;
     std::optional<bool> tap_drag_lock;
@@ -44,8 +42,6 @@ struct yawc_pointer_config{
 };
 
 struct yawc_keyboard_config{
-    bool enabled;
-
     std::optional<std::string> xkb_layout;
     std::optional<std::string> xkb_variant;
     std::optional<std::string> xkb_options;
@@ -56,7 +52,12 @@ struct yawc_keyboard_config{
     std::optional<int32_t> repeat_delay;
 };
 
-using yawc_input_config = std::variant<yawc_keyboard_config, yawc_pointer_config>;
+struct yawc_input_config{
+	bool enabled;
+
+	struct yawc_pointer_config pointer_config;
+	struct yawc_keyboard_config keyboard_config;
+};
 
 struct yawc_bind_node{
     std::map<uint64_t, std::unique_ptr<yawc_bind_node>> children;
