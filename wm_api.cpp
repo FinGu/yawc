@@ -25,7 +25,7 @@ WM_API void wm_focus_toplevel(wm_toplevel *t){
 }
 
 WM_API void wm_raise_toplevel(wm_toplevel *t){
-    if(!t){
+    if(!t || !t->toplevel){
         return;
     }
 
@@ -33,7 +33,7 @@ WM_API void wm_raise_toplevel(wm_toplevel *t){
 }
 
 WM_API void wm_lower_toplevel(wm_toplevel *t){
-    if(!t){
+	if(!t || !t->toplevel){
         return;
     }
 
@@ -41,7 +41,7 @@ WM_API void wm_lower_toplevel(wm_toplevel *t){
 }
 
 WM_API wm_id_t wm_toplevel_get_id(wm_toplevel *t) {
-    if(!t){
+    if(!t || !t->toplevel){
         return -1;
     }
 
@@ -104,25 +104,25 @@ WM_API wm_buffer *wm_try_get_buffer_from_node(wm_node *n) {
 
 
 WM_API wm_node_coords_t wm_try_get_node_at_coords(wm_node *node, double x, double y){
-        auto [snode, input_on_node] = utils::desktop_node_at(wm_server, x, y);
+	auto [snode, input_on_node] = utils::desktop_node_at(wm_server, x, y);
 
-        if(!snode){
-            return {};
-        }
+	if(!snode){
+		return {};
+	}
 
-        wm_node_coords_t coords;
+	wm_node_coords_t coords;
 
-        coords.global_x = x;
-        coords.global_y = y;
+	coords.global_x = x;
+	coords.global_y = y;
 
-        coords.local_x = input_on_node.x;
-        coords.local_y = input_on_node.y;
+	coords.local_x = input_on_node.x;
+	coords.local_y = input_on_node.y;
 
-        if(node){
-            *node = wm_node{snode};
-        }
+	if(node){
+		*node = wm_node{snode};
+	}
 
-        return coords;
+	return coords;
 }
 
 WM_API uint32_t wm_try_get_resize_grip(wm_node *n, wm_toplevel **t){
@@ -230,6 +230,10 @@ WM_API void wm_set_toplevel_position(wm_toplevel *t, int x, int y) {
 
     yawc_toplevel *toplevel = t->toplevel;
 
+	if(!toplevel){
+		return;
+	}
+
     wlr_scene_node_set_position(&toplevel->scene_tree->node, x, y);
 }
 
@@ -239,6 +243,10 @@ WM_API void wm_set_toplevel_geometry(wm_toplevel *t, wm_box_t geo) {
     }
 
     yawc_toplevel *toplevel = t->toplevel;
+
+	if(!toplevel){
+		return;
+	}
 
 	wlr_scene_node_set_position(&toplevel->scene_tree->node, geo.x, geo.y);
 
@@ -342,17 +350,21 @@ WM_API void wm_unref_toplevels(wm_toplevel **t, size_t size){
 }
 
 WM_API const char *wm_get_toplevel_title(wm_toplevel *t){
-    if(!t || !t->toplevel){
+    if(!t){
         return nullptr;
     }
     
-    auto *toplevel = t->toplevel;
+    auto toplevel = t->toplevel;
+
+	if(!toplevel){
+		return nullptr;
+	}
 
     return toplevel->title.c_str();
 }
 
 WM_API uint64_t wm_get_toplevel_id(wm_toplevel *t){
-    if(!t){
+    if(!t || !t->toplevel){
         return -1;
     }
 
@@ -365,6 +377,10 @@ WM_API void wm_hide_toplevel(wm_toplevel *t) {
     }
 
     yawc_toplevel *toplevel = t->toplevel;
+
+	if(!toplevel){
+		return;
+	}
 
     wlr_scene_node_set_enabled(&toplevel->scene_tree->node, false);
 
@@ -398,6 +414,10 @@ WM_API void wm_unhide_toplevel(wm_toplevel *t) {
 
     yawc_toplevel *toplevel = t->toplevel;
 
+	if(!toplevel){
+		return;
+	}
+
     if(t->toplevel->hidden){
         wlr_scene_node_set_enabled(&toplevel->scene_tree->node, true);
         wlr_foreign_toplevel_handle_v1_set_minimized(toplevel->foreign_handle, false);
@@ -410,6 +430,10 @@ WM_API void wm_close_toplevel(wm_toplevel *t) {
     if(!t){
         return;
     }
+
+	if(!t->toplevel){
+		return;
+	}
 
     wlr_xdg_toplevel_send_close(t->toplevel->xdg_toplevel);
 }
@@ -454,6 +478,10 @@ void update_toplevel_resize_grip(
     wm_grip_visual grip = render_callback(toplevel, width, height, bits, user_data);
 
     auto *ytoplevel = toplevel->toplevel;
+
+	if(!ytoplevel){
+		return;
+	}
 
     if (!*node) {
         *node = create_grip_for_toplevel(grip, ytoplevel, width, height, bits);
@@ -587,11 +615,15 @@ WM_API void wm_configure_toplevel_resize_grips(
 
 
 WM_API void wm_destroy_toplevel_resize_grips(wm_toplevel *t) {
-	if (!t || !t->toplevel) {
+	if (!t) {
 		return;
 	}
 
 	auto toplevel = t->toplevel;
+
+	if(!toplevel){
+		return;
+	}
 
 	if (!toplevel->has_resize_grips) {
 		return;
@@ -654,16 +686,18 @@ WM_API wm_output *wm_get_output_of_toplevel(wm_toplevel *t) {
 WM_API wm_box_t wm_get_toplevel_geometry(wm_toplevel *t) {
     wm_box_t box = {0};
 
-    if(!t){
+    if(!t || !t->toplevel){
         return box;
     }
 
-    auto geometry = t->toplevel->xdg_toplevel->base->geometry;
+	auto toplevel = t->toplevel;
+
+    auto geometry = toplevel->xdg_toplevel->base->geometry;
 
     box.width = geometry.width;
     box.height = geometry.height;
 
-   	wlr_scene_node_coords(&t->toplevel->scene_tree->node, &box.x, &box.y);
+   	wlr_scene_node_coords(&toplevel->scene_tree->node, &box.x, &box.y);
 
     return box;
 }
@@ -691,6 +725,10 @@ WM_API void wm_set_toplevel_fullscreen(wm_toplevel *t, bool f){
 
     auto toplevel = t->toplevel;
 
+	if(!toplevel){
+		return;
+	}
+
 	if(f){
     	toplevel->save_state();
 	}
@@ -711,6 +749,10 @@ WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m){
 
     auto toplevel = t->toplevel;
 
+	if(!toplevel){
+		return;
+	}
+
 	if(m){
     	toplevel->save_state();
 	}
@@ -725,15 +767,15 @@ WM_API void wm_set_toplevel_maximized(wm_toplevel *t, bool m){
 }
 
 WM_API bool wm_is_toplevel_fullscreen(wm_toplevel *t){
-    if(!t){
+    if(!t || !t->toplevel){
         return false;
     }
-
+	
     return t->toplevel->fullscreen;
 }
 
 WM_API bool wm_is_toplevel_maximized(wm_toplevel *t) {
-    if(!t){
+    if(!t || !t->toplevel){
         return false;
     }
 
@@ -742,7 +784,7 @@ WM_API bool wm_is_toplevel_maximized(wm_toplevel *t) {
 
 
 WM_API bool wm_is_toplevel_hidden(wm_toplevel *t){
-    if(!t){
+    if(!t || !t->toplevel){
         return false;
     }
 
@@ -768,13 +810,13 @@ WM_API bool wm_is_toplevel_csd(wm_toplevel *t) {
 }
 
 WM_API bool wm_wants_toplevel_maximized(wm_toplevel *t){
-    if(!t || !t->toplevel){
+    if(!t){
         return false;
     }
 
     auto *toplevel = t->toplevel;
 
-    if(!toplevel->xdg_toplevel){
+    if(!toplevel || !toplevel->xdg_toplevel){
         return false;
     }
 
@@ -782,13 +824,13 @@ WM_API bool wm_wants_toplevel_maximized(wm_toplevel *t){
 }
 
 WM_API bool wm_wants_toplevel_fullscreened(wm_toplevel *t){
-    if(!t || !t->toplevel){
+    if(!t){
         return false;
     }
 
     auto *toplevel = t->toplevel;
 
-    if(!toplevel->xdg_toplevel){
+    if(!toplevel || !toplevel->xdg_toplevel){
         return false;
     }
 
@@ -796,13 +838,13 @@ WM_API bool wm_wants_toplevel_fullscreened(wm_toplevel *t){
 }
 
 wm_output *wm_get_wanted_fullscreen_output(wm_toplevel *t){
-	if(!t || !t->toplevel){
+	if(!t){
         return nullptr;
     }
 
     auto toplevel = t->toplevel;
 
-    if(!toplevel->xdg_toplevel){
+    if(!toplevel || !toplevel->xdg_toplevel){
         return nullptr;
     }
 
@@ -941,7 +983,11 @@ WM_API wm_buffer *wm_attach_toplevel_buffer(wm_toplevel *toplevel, const char *n
     wm_buffer *old_buffer = nullptr;
     struct wlr_scene_buffer *cur_scene_buf;
 
-    auto ytoplevel = toplevel->toplevel;
+	if(!toplevel || !toplevel->toplevel){
+		return old_buffer;
+	}
+
+	auto ytoplevel = toplevel->toplevel;
 
     auto& buffers = ytoplevel->buffers;
 
@@ -971,6 +1017,10 @@ WM_API wm_buffer *wm_attach_toplevel_buffer(wm_toplevel *toplevel, const char *n
 }
 
 WM_API wm_buffer *wm_unattach_toplevel_buffer(wm_toplevel *toplevel, const char *name) {
+	if(!toplevel || !toplevel->toplevel){
+		return nullptr; 
+	}
+
     auto &buffers = toplevel->toplevel->buffers;
 
   	auto it = buffers.find(name);
@@ -1025,7 +1075,7 @@ WM_API bool wm_render_fn_to_buffer(wm_buffer *buffer, wm_render_cb cb, void *use
 }
 
 WM_API void wm_attach_toplevel_state(wm_toplevel *toplevel, void *data){
-    if(!toplevel){
+    if(!toplevel || !toplevel->toplevel){
         return;
     }
 
@@ -1033,7 +1083,7 @@ WM_API void wm_attach_toplevel_state(wm_toplevel *toplevel, void *data){
 }
 
 WM_API void *wm_get_toplevel_state(wm_toplevel *toplevel){
-    if(!toplevel){
+    if(!toplevel || !toplevel->toplevel){
         return nullptr;
     }
 
@@ -1046,6 +1096,11 @@ WM_API void wm_change_toplevel_layer(wm_toplevel *toplevel, wm_layer_type layer)
 	}
 
 	auto t = toplevel->toplevel;
+
+	if(!t){
+		return;
+	}
+
 	auto *server = t->server;
 
 	struct wlr_scene_tree *chosen_tree = nullptr;
