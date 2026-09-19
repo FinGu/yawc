@@ -31,29 +31,11 @@ void toplevel_decoration_request_mode(struct wl_listener *listener, void *data){
     }
 }
 
-void setup_decoration(struct yawc_toplevel_decoration *decoration){
-    decoration->request_mode.notify = toplevel_decoration_request_mode;
-    wl_signal_add(&decoration->xdg_decoration->events.request_mode, &decoration->request_mode);
-
-    decoration->destroy.notify = toplevel_decoration_destroy;
-    wl_signal_add(&decoration->xdg_decoration->events.destroy, &decoration->destroy);
-
-    toplevel_decoration_request_mode(&decoration->request_mode, nullptr);
-}
-
 void new_toplevel_decoration(struct wl_listener *listener, void *data){
     struct yawc_server *server = wl_container_of(listener, server, new_xdg_toplevel_decoration);
     struct wlr_xdg_toplevel_decoration_v1 *xdg_decoration = reinterpret_cast<struct wlr_xdg_toplevel_decoration_v1*>(data);
 
-    yawc_toplevel *toplevel;
-
-    wl_list_for_each(toplevel, &server->toplevels, link){
-        if(toplevel->xdg_toplevel != xdg_decoration->toplevel){
-            continue;
-        }
-
-        break;
-    }
+    auto toplevel = reinterpret_cast<struct yawc_toplevel*>(xdg_decoration->toplevel->base->data);
 
     wlr_log(WLR_DEBUG, "Making a decoration for the toplevel");
 
@@ -63,7 +45,13 @@ void new_toplevel_decoration(struct wl_listener *listener, void *data){
         
     toplevel->decoration = decoration;
 
-    setup_decoration(decoration);
+	decoration->request_mode.notify = toplevel_decoration_request_mode;
+    wl_signal_add(&decoration->xdg_decoration->events.request_mode, &decoration->request_mode);
+
+    decoration->destroy.notify = toplevel_decoration_destroy;
+    wl_signal_add(&decoration->xdg_decoration->events.destroy, &decoration->destroy);
+
+    toplevel_decoration_request_mode(&decoration->request_mode, nullptr);
 }
 
 void on_decoration_manager_destroy(struct wl_listener *listener, void *data){
