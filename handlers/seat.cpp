@@ -10,41 +10,42 @@ void handle_focus_change(struct wl_listener* listener, void* data){
 
 	auto new_surface = event->new_surface;
 
-	auto old_toplevel = utils::get_toplevel_from_wlr_surface(event->old_surface);
 	auto new_toplevel = utils::get_toplevel_from_wlr_surface(new_surface);
 
-	/*if(event->new_surface && !new_toplevel){ //we dont change any focuses if we're 'moving' to another type of surface
+	if(new_surface && !new_toplevel){
 		return;
-	}*/
+	}
+
+	auto old_toplevel = server->focused_toplevel;
 
 	if(old_toplevel){
 		if(old_toplevel->mapped && old_toplevel->fullscreen){
 			wlr_scene_node_reparent(&old_toplevel->scene_tree->node, server->layers.normal);
 		}
+
 		old_toplevel->activate(false);
 	}
 
-	if(!new_toplevel){
-		return;
+	if(new_toplevel){
+		server->constrain_cursor(nullptr);
+
+		if(new_toplevel->scene_tree){
+			wlr_scene_node_raise_to_top(&new_toplevel->scene_tree->node);
+
+        	if(new_toplevel->fullscreen){
+            	wlr_scene_node_reparent(&new_toplevel->scene_tree->node, server->layers.fullscreen);
+        	}
+		}
+
+		new_toplevel->activate(true);
+
+		struct wlr_pointer_constraint_v1 *req = wlr_pointer_constraints_v1_constraint_for_surface(
+        	server->pointer_constraints, new_surface, server->seat);
+
+    	server->constrain_cursor(req);
+
+		server->focused_toplevel = new_toplevel;
 	}
-
-	server->constrain_cursor(nullptr);
-
-	if(new_toplevel->scene_tree){
-		wlr_scene_node_raise_to_top(&new_toplevel->scene_tree->node);
-
-        if(new_toplevel->fullscreen){
-            wlr_scene_node_reparent(&new_toplevel->scene_tree->node, server->layers.fullscreen);
-        }
-	}
-
-	new_toplevel->activate(true);
-
-	struct wlr_pointer_constraint_v1 *req = wlr_pointer_constraints_v1_constraint_for_surface(
-        server->pointer_constraints, new_surface, server->seat);
-
-    server->constrain_cursor(req);
-
 }
 
 void handle_pointer_focus_change(struct wl_listener* listener, void* data){

@@ -114,7 +114,7 @@ void handle_cursor_button(struct wl_listener* listener,
 	wlr_layer_surface_v1 *lsurface = 
         utils::toplevel_layer_surface_from_surface(input_on_surface.surface);
 
-	if(lsurface){
+	if(lsurface && lsurface->current.keyboard_interactive){
         server->set_focus_layer(lsurface);
 		wlr_seat_pointer_notify_button(server->seat, event->time_msec, event->button, event->state);
         return;

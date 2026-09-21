@@ -30,6 +30,9 @@ void on_toplevel_geometry(wm_toplevel *toplevel, wm_box_t last_geo, wm_box_t new
 void on_toplevel_unmap(wm_toplevel *toplevel){
     wm_plugin_log("Unmapping toplevel");
 
+	//let's refocus a surface in case the current one here is the focused
+	hide_and_repair_focus(toplevel);
+	
     destroy_task_switcher(&task_switcher);
 
     struct window_data *wdata = wm_get_toplevel_state(toplevel);

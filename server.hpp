@@ -282,6 +282,8 @@ public:
 
 	struct wlr_session_lock_manager_v1 *session_lock_manager;
 
+	struct yawc_toplevel *focused_toplevel;
+
     struct wlr_layer_surface_v1 *focused_layer;
     bool has_exclusive_layer;
     void set_focus_layer(struct wlr_layer_surface_v1 *layer);

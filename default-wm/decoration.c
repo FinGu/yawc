@@ -31,7 +31,7 @@ void draw_decoration(void *data){
     }
 
     if(nk_window_is_hidden(&wd->ctx, id)){
-        wm_close_toplevel(toplevel);
+		close_and_repair_focus(toplevel);
         goto end;
     }
 

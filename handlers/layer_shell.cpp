@@ -196,7 +196,7 @@ void arrange_layers(struct yawc_output *output) {
 	
 	if(topmost){
 		server->set_focus_layer(topmost->scene->layer_surface);
-	}else{
+	} else if(server->focused_layer && server->focused_layer->current.keyboard_interactive == ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE){
 		server->set_focus_layer(nullptr);
 	}
 }
@@ -215,7 +215,7 @@ void handle_layer_map(struct wl_listener *listener, void *data){
 		struct yawc_server *server = surface->output->server;
 		/* but only if the currently focused layer has a lower precedence */
 		if (!server->focused_layer ||
-				server->focused_layer->current.layer >= layer_surface->current.layer) {
+				server->focused_layer->current.layer <= layer_surface->current.layer) {
 			server->set_focus_layer(layer_surface);
 		}
 		arrange_layers(surface->output);
@@ -246,8 +246,14 @@ void handle_layer_surface_commit(struct wl_listener *listener, void *data) {
 void handle_layer_unmap(struct wl_listener *listener, void *data) {
     struct yawc_layer_surface *surface = wl_container_of(listener, surface, unmap);
 
-    if(surface->output && surface->output->server->focused_layer == surface->scene->layer_surface){
-         surface->output->server->set_focus_layer(nullptr);
+	if(!surface->output){
+		return;
+	}
+
+	auto server = surface->output->server;
+
+    if(server->focused_layer == surface->scene->layer_surface){
+         server->set_focus_layer(nullptr);
     }
 }
 

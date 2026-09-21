@@ -144,6 +144,7 @@ void handle_toplevel_destroy(struct wl_listener* listener, void* data)
 {
     wlr_log(WLR_DEBUG, "Destroying toplevel");
     struct yawc_toplevel* toplevel = wl_container_of(listener, toplevel, events.destroy);
+	auto server = toplevel->server;
 
     if(toplevel->has_resize_grips){
         for(size_t i = 0; i < 8; ++i){
@@ -172,6 +173,10 @@ void handle_toplevel_destroy(struct wl_listener* listener, void* data)
 
 	if(toplevel->decoration){
 		toplevel->decoration->toplevel = nullptr;
+	}
+
+	if(server->focused_toplevel == toplevel){
+		server->focused_toplevel = nullptr;
 	}
 
     delete toplevel;
@@ -279,6 +284,8 @@ void handle_toplevel_listener_destroy(struct wl_listener* listener, void* data)
 void yawc_server::create_xdg_shell()
 {
     wlr_log(WLR_DEBUG, "Initializing toplevels");
+
+	this->focused_toplevel = nullptr;
 
     this->xdg_shell = wlr_xdg_shell_create(this->wl_display, 5);
 

@@ -67,19 +67,12 @@ void on_toplevel_minimize_request(wm_toplevel_request_event_t *event){
 void on_toplevel_activate_request(wm_toplevel_request_event_t *event){
 	wm_toplevel *toplevel = event->toplevel;
 
-	if(wm_is_toplevel_focused(toplevel)){
-		wm_hide_toplevel(toplevel);
-		focus_next_toplevel();	
-		return;
-	}
-	
 	wm_unhide_toplevel(toplevel);
 	wm_focus_toplevel(toplevel);
 }
 
 void on_toplevel_close_request(wm_toplevel_request_event_t *event){
 	wm_toplevel *toplevel = event->toplevel;
-
-	wm_close_toplevel(toplevel);
+	
+	close_and_repair_focus(toplevel);
 }
-
