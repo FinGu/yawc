@@ -6,7 +6,7 @@
 
 - Window management logic (stacking, tiling, etc.) is loaded as a plugin.
 - Tearing is always on
-- Global shortcuts handled via `xdg-desktop-portal-hyprland`.
+- Global shortcuts supported via `xdg-desktop-portal-hyprland`.
   - List active shortcuts: `yawc-shortcuts`
   - Reload configuration: `yawc-reload`
 - No xwayland support outside xwayland-satellite ( which is automatically run by the compositor ).
@@ -39,70 +39,40 @@ meson compile -C build
 sudo meson install -C build
 ```
 
-## Recommended runtime dependencies
-- `xdg-desktop-portal-hyprland` - For global shortcuts, screenshotting and screensharing support
-- `xwayland-satellite` - For XWayland support (prevents blurry X11 apps [old folder has the old implementation])
-- `wlr-randr` or `kanshi` - For output configuration
-
 ## Configuration
-
-> [!NOTE]
-> The compositor listens for `SIGUSR1` to reload the configuration without restarting:
-> ```bash
-> yawc-reload  # or: kill -USR1 $(pidof yawc)
-> ```
 
 Configuration is handled via `yawc.toml` (either `~/.config/yawc.toml` or `/etc/yawc/yawc.toml`).
 
 To configure outputs, tools like `wlr-randr` and/or `kanshi` are necessary.
 
 ```toml
-# Window Manager Plugin (Required)
-window_manager = "/usr/lib/yawc/default_wm.so"
+window_manager = "/usr/local/libexec/yawc/libdefault_wm.so"
 
-# Autostart
 autostart = [
-    "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1",
-    "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
+    "kanshi",
+    "lxqt-session",
+    #"swayidle -w timeout 300 'swaylock -f' timeout 310 'wlopm --off eDP-1' resume 'wlopm --on eDP-1'"
 ]
 
-[environment]
-XDG_CURRENT_DESKTOP = "YAWC"
+[pointer]
+enabled = true
+
+accel_profile = "flat"
+accel_speed = 0
+
+tap_to_click = true
+disable_w_typing = true
 
 [keyboard]
+enabled = true
 xkb_layout = "us"
-# xkb_options = "caps:escape"
-repeat_rate = 25
-repeat_delay = 600
 
-[pointer]
-accel_profile = "adaptive"
-nat_scrolling = true
-tap_to_click = true
+#["CHICONY HP Basic USB Keyboard"]
+#enabled = false
 
 [keybinds]
-# Syntax: "Modifier+Key" = "Command"
-"Super+Return" = "alacritty"
-"Super+d" = "wofi --show drun"
-"Super+b" = "firefox"
-
-# Keybind Sequences: Comma-separated for multi-key bindings
-# Timeout: 1 second between keys (e.g., "Super+x,Super+c" requires Super+x then Super+c within 1s)
-"Super+x,Super+c" = "alacritty"
-
-# Global shortcuts exposed to xdg-desktop-portal
-# Format: "Modifier+Key" = "app_id:id"
-"Super+F5" = "com.obsproject.Studio:_toggle_recording"
-
-["Logitech G Pro X Superlight"]
-type = "pointer"
-accel_profile = "flat"
-accel_speed = 0.0
-
-["Keychron K2"]
-type = "keyboard"
-xkb_layout = "de"
-
+"F6" = "screengrab"
+"Ctrl+Alt+t" = "qterminal"
 ```
 
 ## Images
