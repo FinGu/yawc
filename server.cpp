@@ -264,16 +264,16 @@ yawc_server_error yawc_server::run() {
 		return err;
 	}
 
+	if(!this->config->wm_path.empty()){
+        this->load_wm(this->config->wm_path.c_str());
+    }
+
     if (!this->config->autostart_cmds.empty()) {
         for(auto &cmd: this->config->autostart_cmds){
             utils::exec(cmd.c_str());
         }
     }
-
-    if(!this->config->wm_path.empty()){
-        this->load_wm(this->config->wm_path.c_str());
-    }
-
+    
     wl_display_run(this->wl_display);
 
     return yawc_server_error::OK;
