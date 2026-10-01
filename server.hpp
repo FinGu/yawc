@@ -207,6 +207,15 @@ struct yawc_wm_interface {
     uint64_t hash;
 };
 
+struct yawc_pointer_constraint{
+	struct yawc_server *server;
+
+	struct wl_listener commit;
+    struct wl_listener destroy;
+
+	struct wlr_pointer_constraint_v1 *wlr_constraint;
+};
+
 struct yawc_server {
 public:
     struct yawc_config *config;
@@ -244,9 +253,12 @@ public:
 
     struct wlr_foreign_toplevel_manager_v1 *foreign_toplevel_manager;
 
-    struct wlr_pointer_constraints_v1 *pointer_constraints;
-    struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
-    struct wlr_pointer_constraint_v1 *active_constraint = nullptr;
+	struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
+
+	struct wlr_pointer_constraints_v1 *pointer_constraints;
+	struct wlr_pointer_constraint_v1 *active_constraint;
+	void constrain_cursor(struct wlr_pointer_constraint_v1 *constraint);
+    bool handle_pointer_motion_constraint(double &dx, double &dy);
 
     struct wlr_content_type_manager_v1 *content_type_manager;
     struct wlr_data_device_manager *data_device_manager;
@@ -316,9 +328,8 @@ public:
         new_layer_shell_surface,
         layer_shell_destroy,
         new_pointer_constraint,
-        pointer_constraint_commit,
-        pointer_constraint_destroy,
-        pointer_constraint_manager_destroy,
+		pointer_constraint_manager_destroy,
+		pointer_constraint_commit_list,
         new_foreign_toplevel_capture_request,
         foreign_toplevel_capture_handler_destroy,
         new_session_lock,
@@ -383,9 +394,6 @@ public:
     bool do_mouse_operation();
 
     void reset_cursor_mode();
-
-    void constrain_cursor(struct wlr_pointer_constraint_v1 *constraint);
-    void handle_pointer_motion_constraint(double &dx, double &dy);
 
     ~yawc_server();
 

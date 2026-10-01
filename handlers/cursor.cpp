@@ -142,6 +142,20 @@ void handle_cursor_axis(struct wl_listener* listener, void* data){
     utils::wake_up_from_idle(server);
 }
 
+void fallback_pointer_motion(struct yawc_server *server, uint32_t time){
+	auto [toplevel, input_on_surface] = utils::desktop_toplevel_at(server, server->cursor->x, server->cursor->y);
+
+    if(input_on_surface.surface){
+        wlr_seat_pointer_notify_enter(server->seat, input_on_surface.surface, input_on_surface.x, input_on_surface.y);
+        wlr_seat_pointer_notify_motion(server->seat, time, input_on_surface.x,
+            input_on_surface.y);
+    } else {
+		wlr_seat_pointer_notify_clear_focus(server->seat);
+        wlr_cursor_set_xcursor(server->cursor, server->cursor_mgr, "default");
+    }
+}
+
+
 void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data,
     bool absolute)
 {
@@ -174,16 +188,18 @@ void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data
         unacc_dy = motion->unaccel_dy;
     }
 
+    utils::wake_up_from_idle(this);
+
 	wlr_relative_pointer_manager_v1_send_relative_motion(
 		this->relative_pointer_manager,
 		this->seat, (uint64_t)time * 1000,
 		dx, dy, unacc_dx, unacc_dy);
 
-    handle_pointer_motion_constraint(dx, dy);
+    if(!handle_pointer_motion_constraint(dx, dy)){
+    	return;
+	}
 
     wlr_cursor_move(this->cursor, &pointer->base, dx, dy);
-
-    utils::wake_up_from_idle(this);
 
     if (do_mouse_operation()) {
         return;
@@ -204,20 +220,11 @@ void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data
     }
 
     if(handled){
-		wlr_seat_pointer_notify_clear_focus(this->seat);
+		//wlr_seat_pointer_notify_clear_focus(this->seat);
         return;
     }
 
-    auto [toplevel, input_on_surface] = utils::desktop_toplevel_at(this, this->cursor->x, this->cursor->y);
-
-    if(input_on_surface.surface){
-        wlr_seat_pointer_notify_enter(this->seat, input_on_surface.surface, input_on_surface.x, input_on_surface.y);
-        wlr_seat_pointer_notify_motion(this->seat, time, input_on_surface.x,
-            input_on_surface.y);
-    } else {
-		wlr_seat_pointer_notify_clear_focus(this->seat);
-        wlr_cursor_set_xcursor(this->cursor, this->cursor_mgr, "default");
-    }
+	fallback_pointer_motion(this, time);
 }
 
 void handle_request_set_cursor_shape(struct wl_listener *listener, void *data){
