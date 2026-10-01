@@ -135,7 +135,8 @@ bool yawc_server::handle_pointer_motion_constraint(double &dx, double &dy){
     }
 
 	//we still need to send the event to the surface anyways
-    if (this->active_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED) {
+    if (this->active_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED 
+			&& this->seat->pointer_state.focused_surface == this->active_constraint->surface) {
         dx = 0;
         dy = 0;
 		return true;
