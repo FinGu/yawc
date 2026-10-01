@@ -134,6 +134,13 @@ bool yawc_server::handle_pointer_motion_constraint(double &dx, double &dy){
         return true;
     }
 
+	//we still need to send the event to the surface anyways
+    if (this->active_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED) {
+        dx = 0;
+        dy = 0;
+		return true;
+	}
+
 	struct wlr_surface *surface = NULL;
 
     auto [node, input] = utils::desktop_node_at(this, this->cursor->x, this->cursor->y);

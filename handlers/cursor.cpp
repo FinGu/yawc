@@ -220,7 +220,7 @@ void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data
     }
 
     if(handled){
-		//wlr_seat_pointer_notify_clear_focus(this->seat);
+		wlr_seat_pointer_notify_clear_focus(this->seat);
         return;
     }
 
