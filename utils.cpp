@@ -254,7 +254,7 @@ void utils::exec(const char *cmd){
         sigprocmask(SIG_SETMASK, &set, NULL);
 
         if (fork() == 0) {
-            execl("/bin/sh", "sh", "-c", cmd, (void*)NULL);
+            execlp("sh", "sh", "-c", cmd, (void*)NULL);
             _exit(0);
         }
 
