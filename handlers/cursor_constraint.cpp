@@ -4,6 +4,19 @@
 #include "../window_ops.hpp"
 #include "../wm_defs.hpp"
 
+void check_constraint_region(struct yawc_server *server){
+	struct wlr_pointer_constraint_v1 *constraint = server->active_constraint;
+	pixman_region32_t *region = &constraint->region;
+
+	// A locked pointer will result in an empty region, thus disallowing all movement
+	// ^ we used to have that directly in the pointer motion, i'm not sure it's 100% correct so we're moving it here
+	if (constraint->type == WLR_POINTER_CONSTRAINT_V1_CONFINED) {
+		pixman_region32_copy(&server->cursor_confine, region);
+	} else {
+		pixman_region32_clear(&server->cursor_confine);
+	}
+}
+
 void warp_to_constraint_cursor_hint(struct yawc_server *server) {
 	struct wlr_pointer_constraint_v1 *constraint = server->active_constraint;
 
@@ -83,6 +96,8 @@ void yawc_server::constrain_cursor(struct wlr_pointer_constraint_v1 *constraint)
 		return;
 	}
 
+	check_constraint_region(this);
+
 	wlr_pointer_constraint_v1_send_activated(constraint);
 
 	this->pointer_constraint_commit_list.notify = handle_pointer_constraint_commit;
@@ -113,10 +128,15 @@ void destroy_pointer_constraint_manager(struct wl_listener *listener, void *data
 
     wl_list_remove(&server->new_pointer_constraint.link); 
     wl_list_remove(&server->pointer_constraint_manager_destroy.link); 
+
+	pixman_region32_fini(&server->cursor_confine);
 }
 
 void yawc_server::create_pointer_constraint(){
 	this->active_constraint = nullptr;
+
+	pixman_region32_init(&this->cursor_confine);
+
 	wl_list_init(&this->pointer_constraint_commit_list.link);
 
     this->pointer_constraints = wlr_pointer_constraints_v1_create(this->wl_display);
@@ -129,38 +149,14 @@ void yawc_server::create_pointer_constraint(){
 }
 
 //true for success
-bool yawc_server::handle_pointer_motion_constraint(double &dx, double &dy){
-    if(!this->active_constraint){
+bool yawc_server::handle_pointer_motion_constraint(wlr_input_device *input_device, double &dx, double &dy){
+    if(!this->active_constraint || input_device->type != WLR_INPUT_DEVICE_POINTER){
         return true;
     }
 
-	//we still need to send the event to the surface anyways
-    if (this->active_constraint->type == WLR_POINTER_CONSTRAINT_V1_LOCKED 
-			&& this->seat->pointer_state.focused_surface == this->active_constraint->surface) {
-        dx = 0;
-        dy = 0;
-		return true;
-	}
-
-	struct wlr_surface *surface = NULL;
-
     auto [node, input] = utils::desktop_node_at(this, this->cursor->x, this->cursor->y);
 
-    if(!node || node->type != WLR_SCENE_NODE_BUFFER){
-        return false;
-    }
-
-	struct wlr_scene_buffer *scene_buffer =
-		wlr_scene_buffer_from_node(node);
-
-	struct wlr_scene_surface *scene_surface =
-		wlr_scene_surface_try_from_buffer(scene_buffer);
-
-    if(!scene_surface){
-        return false;
-    }
-
-	surface = scene_surface->surface;
+	struct wlr_surface *surface = utils::get_surface_from_node(node);
 
 	if (this->active_constraint->surface != surface) {
 		return false;
@@ -170,7 +166,7 @@ bool yawc_server::handle_pointer_motion_constraint(double &dx, double &dy){
     double sy = input.y;
 
 	double sx_confined, sy_confined;
-	if (!wlr_region_confine(&this->active_constraint->region, sx, sy, sx + dx, sy + dy,
+	if (!wlr_region_confine(&this->cursor_confine, sx, sy, sx + dx, sy + dy,
 			&sx_confined, &sy_confined)) {
 		return false;
 	}

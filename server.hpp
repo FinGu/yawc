@@ -255,10 +255,11 @@ public:
 
 	struct wlr_relative_pointer_manager_v1 *relative_pointer_manager;
 
+	pixman_region32_t cursor_confine;
 	struct wlr_pointer_constraints_v1 *pointer_constraints;
 	struct wlr_pointer_constraint_v1 *active_constraint;
 	void constrain_cursor(struct wlr_pointer_constraint_v1 *constraint);
-    bool handle_pointer_motion_constraint(double &dx, double &dy);
+    bool handle_pointer_motion_constraint(wlr_input_device *input_device, double &dx, double &dy);
 
     struct wlr_content_type_manager_v1 *content_type_manager;
     struct wlr_data_device_manager *data_device_manager;

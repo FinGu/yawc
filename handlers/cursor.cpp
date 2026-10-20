@@ -195,7 +195,7 @@ void yawc_server::handle_pointer_motion(struct wl_listener* listener, void* data
 		this->seat, (uint64_t)time * 1000,
 		dx, dy, unacc_dx, unacc_dy);
 
-    if(!handle_pointer_motion_constraint(dx, dy)){
+    if(!handle_pointer_motion_constraint(&pointer->base, dx, dy)){
     	return;
 	}
 

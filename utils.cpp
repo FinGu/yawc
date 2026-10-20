@@ -295,3 +295,21 @@ yawc_toplevel* utils::get_toplevel_from_wlr_surface(wlr_surface *surface){
 
 	return toplevel;
 }
+
+struct wlr_surface *utils::get_surface_from_node(wlr_scene_node *node){
+    if(!node || node->type != WLR_SCENE_NODE_BUFFER){
+        return nullptr;
+    }
+
+	struct wlr_scene_buffer *scene_buffer =
+		wlr_scene_buffer_from_node(node);
+
+	struct wlr_scene_surface *scene_surface =
+		wlr_scene_surface_try_from_buffer(scene_buffer);
+
+    if(!scene_surface){
+        return nullptr;
+    }
+
+	return scene_surface->surface;
+}

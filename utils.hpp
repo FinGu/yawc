@@ -42,4 +42,6 @@ namespace utils {
     uint64_t hash_file_fnv1a(const std::string& path);
 
 	yawc_toplevel* get_toplevel_from_wlr_surface(wlr_surface *surface);
+
+	struct wlr_surface *get_surface_from_node(wlr_scene_node *);
 } // namespace utils
